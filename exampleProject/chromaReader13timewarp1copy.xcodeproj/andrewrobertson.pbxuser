@@ -1,0 +1,151 @@
+// !$*UTF8*$!
+{
+	4F1B7A2812187B710080EAE9 /* PBXTextBookmark */ = {
+		isa = PBXTextBookmark;
+		fRef = E4B69E1E0A3A1BDC003C02F2 /* testApp.cpp */;
+		name = "testApp.cpp: 1";
+		rLen = 0;
+		rLoc = 0;
+		rType = 0;
+		vrLen = 42;
+		vrLoc = 0;
+	};
+	4F6D19D712157149002471C4 /* audioInputExample */ = {
+		isa = PBXExecutable;
+		activeArgIndex = 2147483647;
+		activeArgIndices = (
+		);
+		argumentStrings = (
+		);
+		autoAttachOnCrash = 1;
+		configStateDict = {
+		};
+		customDataFormattersEnabled = 1;
+		debuggerPlugin = GDBDebugging;
+		disassemblyDisplayState = 0;
+		dylibVariantSuffix = "";
+		enableDebugStr = 1;
+		environmentEntries = (
+		);
+		executableSystemSymbolLevel = 0;
+		executableUserSymbolLevel = 0;
+		libgmallocEnabled = 0;
+		name = audioInputExample;
+		sourceDirectories = (
+		);
+	};
+	4F6D19FD1215714D002471C4 /* Source Control */ = {
+		isa = PBXSourceControlManager;
+		fallbackIsa = XCSourceControlManager;
+		isSCMEnabled = 0;
+		scmConfiguration = {
+		};
+		scmType = "";
+	};
+	4F6D19FE1215714D002471C4 /* Code sense */ = {
+		isa = PBXCodeSenseManager;
+		indexTemplatePath = "";
+	};
+	4F6D1A07121576F2002471C4 /* PBXTextBookmark */ = {
+		isa = PBXTextBookmark;
+		fRef = 4F6D1A08121576F2002471C4 /* AudioFile.java */;
+		name = "(null): 1";
+		rLen = 0;
+		rLoc = 0;
+		rType = 0;
+		vrLen = 115;
+		vrLoc = 0;
+	};
+	4F6D1A08121576F2002471C4 /* AudioFile.java */ = {
+		isa = PBXFileReference;
+		lastKnownFileType = sourcecode.java;
+		name = AudioFile.java;
+		path = "/Users/andrewrobertson/Work/DIxon-Match/at/ofai/music/match/AudioFile.java";
+		sourceTree = "<absolute>";
+	};
+	4F6D1A0A121576F2002471C4 /* PBXTextBookmark */ = {
+		isa = PBXTextBookmark;
+		fRef = 4F6D1A0B121576F2002471C4 /* AudioFile.java */;
+		name = "(null): 1";
+		rLen = 0;
+		rLoc = 0;
+		rType = 0;
+		vrLen = 115;
+		vrLoc = 0;
+	};
+	4F6D1A0B121576F2002471C4 /* AudioFile.java */ = {
+		isa = PBXFileReference;
+		lastKnownFileType = sourcecode.java;
+		name = AudioFile.java;
+		path = "/Users/andrewrobertson/Work/DIxon-Match/at/ofai/music/match/AudioFile.java";
+		sourceTree = "<absolute>";
+	};
+	4F6D1A0C121576F2002471C4 /* PBXTextBookmark */ = {
+		isa = PBXTextBookmark;
+		fRef = E4B69E1E0A3A1BDC003C02F2 /* testApp.cpp */;
+		name = "testApp.cpp: 1";
+		rLen = 0;
+		rLoc = 0;
+		rType = 0;
+		vrLen = 42;
+		vrLoc = 0;
+	};
+	E4B69B4C0A3A1720003C02F2 /* Project object */ = {
+		activeBuildConfigurationName = Release;
+		activeExecutable = 4F6D19D712157149002471C4 /* audioInputExample */;
+		activeTarget = E4B69B5A0A3A1756003C02F2 /* audioInputExample */;
+		codeSenseManager = 4F6D19FE1215714D002471C4 /* Code sense */;
+		executables = (
+			4F6D19D712157149002471C4 /* audioInputExample */,
+		);
+		perUserDictionary = {
+			PBXConfiguration.PBXFileTableDataSource3.PBXFileTableDataSource = {
+				PBXFileTableDataSourceColumnSortingDirectionKey = "-1";
+				PBXFileTableDataSourceColumnSortingKey = PBXFileDataSource_Filename_ColumnID;
+				PBXFileTableDataSourceColumnWidthsKey = (
+					20,
+					243,
+					20,
+					48,
+					43,
+					43,
+					20,
+				);
+				PBXFileTableDataSourceColumnsKey = (
+					PBXFileDataSource_FiletypeID,
+					PBXFileDataSource_Filename_ColumnID,
+					PBXFileDataSource_Built_ColumnID,
+					PBXFileDataSource_ObjectSize_ColumnID,
+					PBXFileDataSource_Errors_ColumnID,
+					PBXFileDataSource_Warnings_ColumnID,
+					PBXFileDataSource_Target_ColumnID,
+				);
+			};
+			PBXPerProjectTemplateStateSaveDate = 303594335;
+			PBXWorkspaceStateSaveDate = 303594335;
+		};
+		perUserProjectItems = {
+			4F1B7A2812187B710080EAE9 /* PBXTextBookmark */ = 4F1B7A2812187B710080EAE9 /* PBXTextBookmark */;
+			4F6D1A07121576F2002471C4 /* PBXTextBookmark */ = 4F6D1A07121576F2002471C4 /* PBXTextBookmark */;
+			4F6D1A0A121576F2002471C4 /* PBXTextBookmark */ = 4F6D1A0A121576F2002471C4 /* PBXTextBookmark */;
+			4F6D1A0C121576F2002471C4 /* PBXTextBookmark */ = 4F6D1A0C121576F2002471C4 /* PBXTextBookmark */;
+		};
+		sourceControlManager = 4F6D19FD1215714D002471C4 /* Source Control */;
+		userBuildSettings = {
+		};
+	};
+	E4B69B5A0A3A1756003C02F2 /* audioInputExample */ = {
+		activeExec = 0;
+		executables = (
+			4F6D19D712157149002471C4 /* audioInputExample */,
+		);
+	};
+	E4B69E1E0A3A1BDC003C02F2 /* testApp.cpp */ = {
+		uiCtxt = {
+			sepNavIntBoundsRect = "{{0, 0}, {860, 2033}}";
+			sepNavSelRange = "{0, 0}";
+			sepNavVisRect = "{{0, 0}, {441, 73}}";
+			sepNavWindowFrame = "{{52, 20}, {1307, 853}}";
+		};
+	};
+}
