@@ -72,7 +72,9 @@ class testApp : public ofBaseApp{
 //	DoubleMatrix similarityMatrix;
 	void calculateSimilarityMatrix();
 	void calculateForwardsAlignment();//forwards causal alignment version
-	
+	void resetForwardsPath();
+	void computeAlignmentForBlock(const int& startFrameX);
+	int alignmentHopsize, alignmentFramesize;
 	bool drawSimilarity;
 	void drawSimilarityMatrix();
 	void printSimilarityMatrix(int sizeToPrint);
@@ -125,6 +127,12 @@ class testApp : public ofBaseApp{
 	void drawAnchorPointsOnChromaSimilarity(const int& startingXFrame, const int& startingYFrame);
 	
 		void processAudioToDoubleMatrix(DoubleMatrix* myDoubleMatrix, DoubleVector* energyVector);
+	void processAudioToMatrix(DoubleMatrix* myDoubleMatrix, DoubleVector* energyVector);
+	//online version
+	void processFrameToMatrix(float newframe[], DoubleMatrix* myDoubleMatrix, DoubleVector* energyVector);
+	void iterateThroughAudioMatrix(DoubleMatrix* myDoubleMatrix, DoubleVector* energyVector);
+	void resetMatrix(DoubleMatrix* myDoubleMatrix, DoubleVector* energyVector);
+	
 	
 		void loadNewAudio(string soundFileName);
 		void loadSecondAudio(string sndFileName);
@@ -140,6 +148,8 @@ class testApp : public ofBaseApp{
 		string firstFileName, secondFileName, soundFileName;
 	
 	float screenHeight, screenWidth;
+	
+	double energyMaximumValue;
 	
 		float 	pan;
 		int		sampleRate;
@@ -170,11 +180,7 @@ class testApp : public ofBaseApp{
 	
 		float diagonalPenalty;
 	
-		//------------------- for the simple sine wave synthesis
-		float 	targetFrequency;
-		float 	phase;
-		float 	phaseAdder;
-		float 	phaseAdderTarget;
+
 		
 		string sndfileInfoString, textString;
 		int xIndex;

@@ -43,6 +43,9 @@
 
 void testApp::setup(){
 
+	alignmentHopsize = 200;
+	alignmentFramesize = 800;
+	
 	doCausalAlignment = true;
 	
 	ofBackground(255,255,255);
@@ -58,9 +61,7 @@ void testApp::setup(){
 
 //DONT NEED ANY OF THIS
 	sampleRate 			= 44100;
-	phase 				= 0;
-	phaseAdder 			= 0.0f;
-	phaseAdderTarget 	= 0.0f;
+
 	volume				= 0.1f;
 	bNoise 				= false;
 	lAudio = new float[256];
@@ -99,23 +100,6 @@ void testApp::setup(){
 
 	
 	loadNewAudio(fullFileName);
-	/*
-	const char	*infile_name = fullFileName.c_str();// "../../../data/sound/Bach_short1.wav";	//
-	
-	 loadLibSndFile(infile_name);
-	 
-	string loadfilename = fullFileName;//"sound/Bach_short1.wav";//
-	 loadedAudio.loadSound(loadfilename);
-	playingAudio = &loadedAudio;
-	 //end load soninf ifiels
-
-	processAudioToDoubleMatrix(&tw.chromaMatrix, &tw.firstEnergyVector);
-	
-	*/
-	
-//	secondFileName = "../../../data/sound/Bach_short2.wav"; 
-	 
-
 
 	loadSecondAudio(secondFileName);//i.e. load same as first file
 	
@@ -166,8 +150,6 @@ void testApp::calculateSimilarityAndAlignment(){
 	
 	backwardsAlignmentIndex = tw.backwardsAlignmentPath[0].size()-1;
 	printf("index size is %i\n", backwardsAlignmentIndex);
-
-	
 
 
 	setConversionRatio();
@@ -236,59 +218,77 @@ void testApp::initialiseVariables(){
 	
 }
 
-
-void testApp::calculateForwardsAlignment(){
-	
+void testApp::resetForwardsPath(){
 	tw.forwardsAlignmentPath.clear();
 	//causal part
-	int hopsize = 200;
-	int frameSize = 800;
+	
 	int startFrameY = 0;
 	int startFrameX = 0;
 	tw.anchorPoints.clear();
-	for (int startFrameX = 0;startFrameX < tw.firstEnergyVector.size(); startFrameX += hopsize){//tw.firstChromaEnergyMatrix.size()
+}
+
+void testApp::calculateForwardsAlignment(){
+
+	resetForwardsPath();
+	int startFrameY = 0;
+	for (int startFrameX = 0;startFrameX < tw.firstEnergyVector.size(); startFrameX += alignmentHopsize){//tw.firstChromaEnergyMatrix.size()
 		//replace this with a while startFrame < end of file
 		tw.addAnchorPoints(startFrameX, startFrameY);
-		
-		//NEED TO ASSUME WE DON'T HAVE 
-		double timeBefore = ofGetElapsedTimef();
-		printf("PART SIM: startFrameX %i, startFrameY: %i\n", startFrameX, startFrameY);
-			//NEW FUNCTION - calls only the energy and uses the stored chromagram	
-		
-		tw.calculatePartJointSimilarityMatrix(&tw.firstEnergyVector, &tw.secondEnergyVector, &tw.chromaSimilarityMatrix, &tw.tmpSimilarityMatrix, 
-											  startFrameX, startFrameY, startFrameX+frameSize, startFrameY + 3*frameSize);
-		
-		
-		
-		
-	//	printf("TMP size of tmp sim is %i\n", (int)tw.tmpSimilarityMatrix.size());	
-		double elapsedTime = ofGetElapsedTimef() - timeBefore;
-	//	printf("PART SIM MATRIX CAL TAKES %f\n", elapsedTime);
-		
-		//change part sim to have a y limit too
-		
-		
-		//check if we can not calculate alignment matrix for chunks of the sim matrix where it is off diagonal
-		
-		tw.calculatePartAlignmentMatrix(tw.tmpSimilarityMatrix.size()-1, tw.tmpSimilarityMatrix[0].size()-1, &tw.tmpAlignmentMeasureMatrix, &tw.tmpSimilarityMatrix);
-		
-		//get alignment measure minimum
-		//find minimum path between only the section we are interested in
-		//write new function to find minimum backwards path from the index we choose (not the final corner)
-		//		int myIndex = tw.findMinimumOfMatrixColumn(tw.tmpAlignmentMeasureMatrix, tw.tmpSimilarityMatrix.size()-1);
-		/*		printf("my index is %i\n", myIndex); 
-		 for (int i = 0;i< tw.alignmentMeasureMatrix[tw.similarityMatrix.size()-1].size() - 1;i++){
-		 printf("Alignment[%i] : %f\n", i, tw.alignmentMeasureMatrix[tw.similarityMatrix.size()-1][i]);
-		 }
-		 */
-		printf("\n CALC PART ALIGNMENT MIN PATH\n");
-		tw.calculateMinimumAlignmentPath(&tw.tmpAlignmentMeasureMatrix, &tw.tmpBackwardsPath, true);//true is for greedy calculation
-		printf("\n PART ALIGNMENT GENERATES THIS BACKWARDS PATH:: \n");
-		tw.extendForwardAlignmentPath(hopsize, &tw.tmpBackwardsPath, startFrameX, startFrameY);
-		
+		printf("ADD ANCHOR POINTS %i and %i\n", startFrameX, startFrameY);
+		computeAlignmentForBlock(startFrameX);
+	
 		startFrameY = tw.forwardsAlignmentPath[1][(tw.forwardsAlignmentPath[0].size()-1)];
 		
 	}//end for startFrameX
+	
+}
+
+void testApp::computeAlignmentForBlock(const int& startFrameX){
+	int startFrameY = 0;
+	if (tw.anchorPoints.size() > 0)
+		startFrameY = tw.anchorPoints[tw.anchorPoints.size()-1][1];
+	
+	
+
+	
+	//NEED TO ASSUME WE DON'T HAVE 
+	double timeBefore = ofGetElapsedTimef();
+	printf("PART SIM: startFrameX %i, startFrameY: %i\n", startFrameX, startFrameY);
+	//NEW FUNCTION - calls only the energy and uses the stored chromagram	
+	
+	tw.calculatePartJointSimilarityMatrix(&tw.firstEnergyVector, &tw.secondEnergyVector, &tw.chromaSimilarityMatrix, &tw.tmpSimilarityMatrix, 
+										  startFrameX, startFrameY, startFrameX+alignmentFramesize, startFrameY + 3*alignmentFramesize);
+	
+	
+	
+	
+	//	printf("TMP size of tmp sim is %i\n", (int)tw.tmpSimilarityMatrix.size());	
+	double elapsedTime = ofGetElapsedTimef() - timeBefore;
+	//	printf("PART SIM MATRIX CAL TAKES %f\n", elapsedTime);
+	
+	//change part sim to have a y limit too
+	
+	
+	//check if we can not calculate alignment matrix for chunks of the sim matrix where it is off diagonal
+	
+	tw.calculatePartAlignmentMatrix(tw.tmpSimilarityMatrix.size()-1, tw.tmpSimilarityMatrix[0].size()-1, &tw.tmpAlignmentMeasureMatrix, &tw.tmpSimilarityMatrix);
+	
+	//get alignment measure minimum
+	//find minimum path between only the section we are interested in
+	//write new function to find minimum backwards path from the index we choose (not the final corner)
+	//		int myIndex = tw.findMinimumOfMatrixColumn(tw.tmpAlignmentMeasureMatrix, tw.tmpSimilarityMatrix.size()-1);
+	/*		printf("my index is %i\n", myIndex); 
+	 for (int i = 0;i< tw.alignmentMeasureMatrix[tw.similarityMatrix.size()-1].size() - 1;i++){
+	 printf("Alignment[%i] : %f\n", i, tw.alignmentMeasureMatrix[tw.similarityMatrix.size()-1][i]);
+	 }
+	 */
+	printf("\n CALC PART ALIGNMENT MIN PATH\n");
+	tw.calculateMinimumAlignmentPath(&tw.tmpAlignmentMeasureMatrix, &tw.tmpBackwardsPath, true);//true is for greedy calculation
+	printf("\n PART ALIGNMENT GENERATES THIS BACKWARDS PATH:: \n");
+	tw.extendForwardAlignmentPath(alignmentHopsize, &tw.tmpBackwardsPath, startFrameX, startFrameY);
+	
+	//startFrameY = tw.forwardsAlignmentPath[1][(tw.forwardsAlignmentPath[0].size()-1)];
+
 	
 }
 
@@ -1177,6 +1177,95 @@ void testApp::processAudioToDoubleMatrix(DoubleMatrix* myDoubleMatrix, DoubleVec
 }
 
 
+void testApp::processAudioToMatrix(DoubleMatrix* myDoubleMatrix, DoubleVector* energyVector){
+	resetMatrix(myDoubleMatrix, energyVector);
+	iterateThroughAudioMatrix(myDoubleMatrix, energyVector);
+}
+
+
+void testApp::resetMatrix(DoubleMatrix* myDoubleMatrix, DoubleVector* energyVector){
+	//wendy
+	myDoubleMatrix->clear();
+	energyVector->clear();
+	
+	chromaG.initialise(FRAMESIZE, CHROMAGRAM_FRAMESIZE);//framesize 512 and hopsize 2048 - already done
+	chromaG.maximumChromaValue = 1;
+	energyMaximumValue = 1;
+}
+
+void testApp::iterateThroughAudioMatrix(DoubleMatrix* myDoubleMatrix, DoubleVector* energyVector){
+	int readcount = 1;
+	
+	while(readcount != 0 && moveOn == true && energyVector->size() < FILE_LIMIT)
+	{
+		
+		// read FRAMESIZE samples from 'infile' and save in 'data'
+		readcount = sf_read_float(infile, frame, FRAMESIZE);
+		processFrameToMatrix(frame, myDoubleMatrix, energyVector);
+	}//end while readcount
+	
+	printf("Max chroma value is %f \n", chromaG.maximumChromaValue);
+	printf("length of chromagram is %d frames\n", (int)myDoubleMatrix->size());
+	printf("height of dmatrix is %d\n", (int)(*myDoubleMatrix)[0].size());
+	//normalise chroma matrix	
+	for (int i = 0; i < myDoubleMatrix->size();i++){
+		for (int j = 0; j < ((*myDoubleMatrix)[0]).size();j++){
+			//non-causal normalisation
+			(*myDoubleMatrix)[i][j] /= chromaG.maximumChromaValue;	
+		}
+	}
+	
+	
+	printf("size of energy vector is %d \n", (int)energyVector->size());	
+	//non causal normalisation
+	for (int i = 0; i < energyVector->size();i++){
+		(*energyVector)[i] /= energyMaximumValue;
+	}
+	
+	//	totalNumberOfFrames = (int)energyVector->size();
+	chromaConversionRatio = myDoubleMatrix->size() / (int)energyVector->size();
+	
+	//	int size = myDoubleMatrix->size() * CHROMA_CONVERSION_FACTOR;
+	
+}
+
+
+void testApp::processFrameToMatrix(float newframe[], DoubleMatrix* myDoubleMatrix, DoubleVector* energyVector){
+	
+	 double doubleFrame[FRAMESIZE];
+	 for (int k = 0;k< FRAMESIZE;k++){
+	 doubleFrame[k] = newframe[k];
+	 }
+	
+	//8192 samples per chroma frame  //processing frame - downsampled to 11025Hz
+	chromaG.processframe(newframe);
+	
+	if (chromaG.chromaready)
+	{
+		DoubleVector d;
+		
+		for (int i = 0;i<12;i++){
+			d.push_back(chromaG.rawChroma[i]);// / chromaG->maximumChromaValue);	
+			
+		}	
+		//this would do chord detection
+		
+		myDoubleMatrix->push_back(d);
+		//so now is storing at d[i][current_index]
+		
+	}//end if chromagRamm ready
+	
+	
+	//	double energyValue = getEnergyOfFrame();
+	double energyValue = onset->getDFsample(doubleFrame);
+	energyVector->push_back(energyValue);
+	if (energyValue > energyMaximumValue)
+		energyMaximumValue = energyValue;
+	
+	
+}
+
+
 //--------------------------------------------------------------
 void testApp::keyPressed  (int key){
 	if (key == '-'){
@@ -1329,8 +1418,7 @@ void testApp::mouseMoved(int x, int y ){
 	pan = (float)x / (float)width;
 	float height = (float)ofGetHeight();
 	float heightPct = ((height-y) / height);
-	targetFrequency = 2000.0f * heightPct;
-	phaseAdderTarget = (targetFrequency / (float) sampleRate) * TWO_PI;
+
 	xIndex = (int)(pan*ENERGY_LENGTH);
 }
 
@@ -1362,16 +1450,6 @@ height = h;
 }
 //--------------------------------------------------------------
 void testApp::audioRequested 	(float * output, int bufferSize, int nChannels){
-	//pan = 0.5f;
-	float leftScale = 1 - pan;
-	float rightScale = pan;
-
-	// sin (n) seems to have trouble when n is very large, so we
-	// keep phase in the range of 0-TWO_PI like this:
-	while (phase > TWO_PI){
-		phase -= TWO_PI;
-	}
-
 
 }
 
@@ -1453,8 +1531,8 @@ void testApp::loadSecondAudio(string sndFileName){
 	const char	*infilenme = sndFileName.c_str() ;	
 	loadLibSndFile(infilenme);
 
-
-	processAudioToDoubleMatrix(&tw.secondMatrix, &tw.secondEnergyVector);
+	processAudioToMatrix(&tw.secondMatrix, &tw.secondEnergyVector);
+//	processAudioToDoubleMatrix(&tw.secondMatrix, &tw.secondEnergyVector);
 	
 }
 
@@ -1646,260 +1724,19 @@ void testApp::dontDoJunkAlignment(){
 	
 }
 
-
-
-
-
-
 /*
-void testApp::pushSimCoxde(){
- /*	for (int i = 0;i < tw.tmpSimilarityMatrix.size();i++){
- DoubleVector v;
- v = tw.tmpSimilarityMatrix[i];
- tw.similarityMatrix.push_back(v);
- }
- */	
+ const char	*infile_name = fullFileName.c_str();// "../../../data/sound/Bach_short1.wav";	//
  
- /*
- void testApp::calculateSimilarityMatrix(){
- similarityMatrix.clear();
- printf("calculating similarity matrix...");
- userInfoString = "calculating similarity matrix...";
+ loadLibSndFile(infile_name);
  
- double distance, firstSum, secondSum;
+ string loadfilename = fullFileName;//"sound/Bach_short1.wav";//
+ loadedAudio.loadSound(loadfilename);
+ playingAudio = &loadedAudio;
+ //end load soninf ifiels
  
- for (int x = 0;x < tw.chromaMatrix.size();x++){
- DoubleVector d;
- for (int y = 0;y < tw.secondMatrix.size();y++){
- 
- //d.push_back( drand48() );	
- 
- distance = 0;
- firstSum = 0;
- secondSum = 0;
- for (int z = 0;z < chromaMatrix[x].size();z++){//z is the twelve chromagram values
- 
- distance += chromaMatrix[x][z] * secondMatrix[y][z];
- 
- firstSum += chromaMatrix[x][z] * chromaMatrix[x][z];
- secondSum += secondMatrix[y][z] * secondMatrix[y][z];
- }
- 
- if (firstSum > 0 && secondSum > 0)
- distance /= sqrt(firstSum * secondSum);
- 
- 
- d.push_back( distance);	
- 
- }	//end for y
- 
- similarityMatrix.push_back(d);
- 
- }//end for x
- userInfoString += "; size =";
- userInfoString += ofToString(similarityMatrix.size() , 0);
- printf("..sim size: %i, height: %i \n", similarityMatrix.size(), (chromaMatrix[0]).size());
- 
- }//end self sim
+ processAudioToDoubleMatrix(&tw.chromaMatrix, &tw.firstEnergyVector);
  
  */
-/*
- void testApp::calculateAlignmentMatrix(){
- 
- //initialise alignment
- alignmentMeasureMatrix.clear();
- DoubleVector d;
- d.push_back(getDistance(0,0));
- alignmentMeasureMatrix.push_back(d);
- 
- bool chromaCalculated = false;
- bool secondCalculated = false;
- 
- while (!chromaCalculated || !secondCalculated) {
- 
- if (!chromaCalculated)
- chromaCalculated = extendAlignmentAlong();
- 
- if (!secondCalculated)
- secondCalculated = extendAlignmentUp();
- 
- }
- 
- }
- 
- bool testApp::extendAlignmentUp(){
- DoubleVector d;
- d = alignmentMeasureMatrix[0];
- int heightSize = d.size();
- if (heightSize < secondMatrix.size()){
- //then we haven't finished yet
- for (int i = 0;i < alignmentMeasureMatrix.size();i++){
- double value = getDistance(i, heightSize);
- value += getMinimum(i, heightSize, value);	
- alignmentMeasureMatrix[i].push_back(value);
- }
- }
- if (alignmentMeasureMatrix[0].size() == secondMatrix.size())
- return true;
- else
- return false;
- 
- }
- 
- 
- bool testApp::extendAlignmentAlong(){
- DoubleVector d;
- int widthSize = alignmentMeasureMatrix.size();
- if (widthSize < chromaMatrix.size()){
- //then we can extend along
- double value = getDistance(widthSize, 0);
- value += getMinimum(widthSize, 0, value);
- 
- d.push_back(value);
- alignmentMeasureMatrix.push_back(d);
- 
- for (int j = 1;j < alignmentMeasureMatrix[widthSize - 1].size();j++){
- value = getDistance(widthSize, j);
- value += getMinimum(widthSize, j, value);
- alignmentMeasureMatrix[widthSize].push_back(value);
- }
- 
- //alignmentMeasureMatrix.push_back(d);
- }
- 
- if (alignmentMeasureMatrix.size() == chromaMatrix.size())
- return true;
- else
- return false;
- 
- }
- 
- 
- void testApp::calculateMinimumAlignmentPath(){
- //this requires one pass of the DTW algorithm and then works backwards from (N,M)
- //to find the optimal path to (0,0), where N and M are the lengths of the two chromoVectors respectively
- //minimumAlignmentPath.clear();
- backwardsAlignmentPath.clear();
- 
- printf("Finding minimum Path \n");
- IntVector v;
- v.push_back(chromaMatrix.size()-1);
- backwardsAlignmentPath.push_back(v);
- v.clear();
- v.push_back(secondMatrix.size()-1);
- backwardsAlignmentPath.push_back(v);
- //so now backwards path[0][0] = size(chroma) and path[1][0] = size(secondMatrix)
- printf("backwards path %i : %i \n", backwardsAlignmentPath[0][0], backwardsAlignmentPath[1][0]);
- 
- 
- int indexOfBackwardsPath = 0;
- while (!findPreviousMinimumInBackwardsPath())	{
- indexOfBackwardsPath++;
- printf("backwards path %i : %i \n", backwardsAlignmentPath[0][indexOfBackwardsPath], backwardsAlignmentPath[1][indexOfBackwardsPath]);
- 
- }
- //printf("final index of backwards path is %i and i is %i \n", backwardsAlignmentPath[0].size()-1, indexOfBackwardsPath);
- 
- backwardsAlignmentIndex = backwardsAlignmentPath[0].size()-1;//remember that this goes backwards!
- 
- }
- 
- 
- bool testApp::findPreviousMinimumInBackwardsPath(){
- int chromaPosition, secondPosition;
- int i,j;
- i = backwardsAlignmentPath[0][backwardsAlignmentPath[0].size()-1];
- j  = backwardsAlignmentPath[1][backwardsAlignmentPath[1].size()-1];
- 
- double newMinimum;
- double *ptr;
- ptr = &newMinimum;
- newMinimum = alignmentMeasureMatrix[i][j];
- DoubleVector d;
- 
- 
- bool finishedAligning = true;
- 
- if (i > 0){
- if (testForNewAlignmentMinimum(ptr, i-1, j)){
- chromaPosition = i-1;
- secondPosition = j;
- finishedAligning = false;
- }
- 
- if (j>0 && testForNewAlignmentMinimum(ptr, i-1, j-1)){
- chromaPosition = i-1;
- secondPosition = j-1;
- finishedAligning = false;
- }
- }
- 
- if (j > 0 && testForNewAlignmentMinimum(ptr, i, j-1)){
- chromaPosition = i;
- secondPosition = j-1;
- //newMinimum = alignmentMeasureMatrix[chromaPosition][secondPosition];
- finishedAligning = false;
- }
- 
- if (!finishedAligning){
- backwardsAlignmentPath[0].push_back(chromaPosition);
- backwardsAlignmentPath[1].push_back(secondPosition);
- }
- 
- return finishedAligning;
- 
- }	
- 
- 
- 
- bool testApp::testForNewAlignmentMinimum(double *previousMinimum, int i, int j){
- bool newMinimumFound = false;
- if (alignmentMeasureMatrix[i][j] < *previousMinimum){
- *previousMinimum = alignmentMeasureMatrix[i][j];							   
- newMinimumFound = true;
- }
- 
- return newMinimumFound;							   
- }		
- */ 
 
 
-/*
- int testApp::findMinimumOfVector(DoubleVector *d){
- int minimumIndex = 0;
- double minimumValue = (*d)[0];
- for (int i = 0;i < d->size();i++){
- if ((*d)[i] < minimumValue){
- minimumIndex = i;
- minimumValue = (*d)[i];
- }
- }
- 
- return minimumIndex;
- }
- */
-/*
- double testApp::getDistance(int i, int j){
- return (1 - similarityMatrix[i][j]);
- }
- 
- double testApp::getMinimum(int i, int j, float newValue){
- double minimumValue = 0;
- 
- if (i > 0){
- minimumValue = tw.alignmentMeasureMatrix[i-1][j];
- if (j > 0){
- minimumValue = min(minimumValue, alignmentMeasureMatrix[i-1][j-1] + newValue ) ;//penalises diagonal by 2
- minimumValue = min(minimumValue, alignmentMeasureMatrix[i][j-1]);
- }
- }
- else{//i.e. i == 0 
- if (j > 0)
- minimumValue = tw.alignmentMeasureMatrix[i][j-1];
- }
- 
- return minimumValue;
- }
- 
- */
 

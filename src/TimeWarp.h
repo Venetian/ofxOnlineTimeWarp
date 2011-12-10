@@ -90,6 +90,8 @@ public:
 	void calculateSimilarityMatrixWithPointers(DoubleMatrix* firstChromaMatrix, DoubleMatrix* secondChromaMatrix, DoubleMatrix* simMatrix);
 
 	void calculateJointSimilarityMatrix(DoubleVector* energyVectorOne, DoubleVector* energyVectorTwo, DoubleMatrix* chromaSimilarityMatrix, DoubleMatrix* simMatrix);
+	//where we waim to do combined chroma and energy
+	
 	
 	void calculatePartJointSimilarityMatrix(DoubleVector* firstEnergyVector, DoubleVector* secondEnergyVector, DoubleMatrix* chromaSimMatrix, DoubleMatrix* simMatrix, int startX, int startY, int endX, int endY);
 
