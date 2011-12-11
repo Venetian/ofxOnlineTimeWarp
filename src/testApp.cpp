@@ -43,6 +43,8 @@
 
 void testApp::setup(){
 
+	soundFileLoader = new  ofxSoundFileLoader();
+	
 	alignmentHopsize = 200;
 	alignmentFramesize = 800;
 	
@@ -125,7 +127,9 @@ void testApp::setup(){
 	
 }
  
-
+void testApp::exit(){
+	delete soundFileLoader;
+}
 
 void testApp::calculateSimilarityAndAlignment(){
 	
@@ -1202,30 +1206,13 @@ void testApp::iterateThroughAudioMatrix(DoubleMatrix* myDoubleMatrix, DoubleVect
 		// read FRAMESIZE samples from 'infile' and save in 'data'
 		readcount = sf_read_float(infile, frame, FRAMESIZE);
 		processFrameToMatrix(frame, myDoubleMatrix, energyVector);
+		
 	}//end while readcount
-	
-	printf("Max chroma value is %f \n", chromaG.maximumChromaValue);
-	printf("length of chromagram is %d frames\n", (int)myDoubleMatrix->size());
-	printf("height of dmatrix is %d\n", (int)(*myDoubleMatrix)[0].size());
-	//normalise chroma matrix	
-	for (int i = 0; i < myDoubleMatrix->size();i++){
-		for (int j = 0; j < ((*myDoubleMatrix)[0]).size();j++){
-			//non-causal normalisation
-			(*myDoubleMatrix)[i][j] /= chromaG.maximumChromaValue;	
-		}
-	}
-	
-	
-	printf("size of energy vector is %d \n", (int)energyVector->size());	
-	//non causal normalisation
-	for (int i = 0; i < energyVector->size();i++){
-		(*energyVector)[i] /= energyMaximumValue;
-	}
+
+	printMatrixData(myDoubleMatrix, energyVector);
 	
 	//	totalNumberOfFrames = (int)energyVector->size();
 	chromaConversionRatio = myDoubleMatrix->size() / (int)energyVector->size();
-	
-	//	int size = myDoubleMatrix->size() * CHROMA_CONVERSION_FACTOR;
 	
 }
 
@@ -1265,6 +1252,27 @@ void testApp::processFrameToMatrix(float newframe[], DoubleMatrix* myDoubleMatri
 	
 }
 
+void testApp::printMatrixData(DoubleMatrix* myDoubleMatrix, DoubleVector* energyVector){
+	
+	printf("Max chroma value is %f \n", chromaG.maximumChromaValue);
+	printf("length of chromagram is %d frames\n", (int)myDoubleMatrix->size());
+	printf("height of dmatrix is %d\n", (int)(*myDoubleMatrix)[0].size());
+	//normalise chroma matrix	
+	for (int i = 0; i < myDoubleMatrix->size();i++){
+		for (int j = 0; j < ((*myDoubleMatrix)[0]).size();j++){
+			//non-causal normalisation
+			(*myDoubleMatrix)[i][j] /= chromaG.maximumChromaValue;	
+		}
+	}
+	
+	
+	printf("size of energy vector is %d \n", (int)energyVector->size());	
+	//non causal normalisation
+	for (int i = 0; i < energyVector->size();i++){
+		(*energyVector)[i] /= energyMaximumValue;
+	}
+	
+}
 
 //--------------------------------------------------------------
 void testApp::keyPressed  (int key){
@@ -1338,7 +1346,7 @@ void testApp::keyPressed  (int key){
 	
 	if (key == 'o'){
 		tw.clearVectors();
-		
+
 		openNewAudioFileWithdialogBox();
 	}
 	
@@ -1398,6 +1406,7 @@ void testApp::keyReleased  (int key){
 }
 
 void testApp::openNewAudioFileWithdialogBox(){
+	//loads first audio
 	
 	//open audio file
 	string *filePtr;
@@ -1509,9 +1518,14 @@ void testApp::loadNewAudio(string soundFileName){
 	//snd file method
 	const char	*infilename = soundFileName.c_str() ;
 	loadLibSndFile(infilename);
+	//	loadFirstAudioFile();
+//	processAudioToDoubleMatrix(&tw.chromaMatrix, &tw.firstEnergyVector);
+	processAudioToMatrix(&tw.chromaMatrix, &tw.firstEnergyVector);
 	
-//	loadFirstAudioFile();
-	processAudioToDoubleMatrix(&tw.chromaMatrix, &tw.firstEnergyVector);
+	soundFileLoader->loadLibSndFile(infilename);//LOADS IT INTO SOUNDFILE.AUDIOHOLDER.AUDIOVECTOR
+	
+	
+
 	audioPlaying = false;
 }
 

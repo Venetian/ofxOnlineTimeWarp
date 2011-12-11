@@ -9,6 +9,7 @@
 #include "ofxFileDialogOSX.h"
 #include "timeWarp.h"
 #include "OnsetDetectionFunction.h"
+#include "ofxSoundFileLoader.h"
 
 //#include <vector>
 //#include <cstdlib>
@@ -31,7 +32,8 @@ class testApp : public ofBaseApp{
 		void setup();
 		void update();
 		void draw();
-
+		void exit();
+		
 		void keyPressed  (int key);
 		void keyReleased(int key);
 		void mouseMoved(int x, int y );
@@ -132,7 +134,7 @@ class testApp : public ofBaseApp{
 	void processFrameToMatrix(float newframe[], DoubleMatrix* myDoubleMatrix, DoubleVector* energyVector);
 	void iterateThroughAudioMatrix(DoubleMatrix* myDoubleMatrix, DoubleVector* energyVector);
 	void resetMatrix(DoubleMatrix* myDoubleMatrix, DoubleVector* energyVector);
-	
+	void printMatrixData(DoubleMatrix* myDoubleMatrix, DoubleVector* energyVector);
 	
 		void loadNewAudio(string soundFileName);
 		void loadSecondAudio(string sndFileName);
@@ -217,6 +219,8 @@ class testApp : public ofBaseApp{
 	void dontDoJunkAlignment();
 	void calculateCausalAlignment();
 	bool doCausalAlignment;
+	
+	ofxSoundFileLoader* soundFileLoader;
 };
 
 #endif
