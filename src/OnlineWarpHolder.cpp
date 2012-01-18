@@ -9,7 +9,6 @@
 
 #include "OnlineWarpHolder.h"
 
-#include "OnlineWarpHolder.h"
 #include "stdio.h"
 #include "aubio.h"
 #include <iostream>
@@ -60,7 +59,7 @@ void OnlineWarpHolder::setup(){
 	
 	soundFileLoader = new  ofxSoundFileLoader();
 	
-	alignmentHopsize = 400;
+	alignmentHopsize = 300;
 	alignmentFramesize = 1200;
 	
 	doCausalAlignment = true;
@@ -148,7 +147,7 @@ void OnlineWarpHolder::exit(){
 
 void OnlineWarpHolder::calculateSimilarityAndAlignment(){
 	
-	tw.initialiseVariables();
+//	tw.initialiseVariables(); //zaps everything - now called before the fn
 	
 	//here is the main TimeWarp similarity matrix calc, the minimum alignment matrix via dtw and then the backwards path estimate 
 	double timeBefore = ofGetElapsedTimef();
@@ -157,7 +156,7 @@ void OnlineWarpHolder::calculateSimilarityAndAlignment(){
 	double elapsedTime = ofGetElapsedTimef() - timeBefore;
 	printf("CHROMA SIMILARITY ONLY TAKES %2.2f seconds\n", elapsedTime);
 	
-	dontDoJunkAlignment();
+	//dontDoJunkAlignment();i.e. was here
 	
 	if (doCausalAlignment)
 		calculateCausalAlignment();
@@ -233,7 +232,7 @@ void OnlineWarpHolder::initialiseVariables(){
 	audioPlaying = false;
 	audioPaused = true;
 	
-	//	tw.initialiseVariables();
+
 	
 }
 
@@ -1203,7 +1202,8 @@ void OnlineWarpHolder::processAudioToMatrix(DoubleMatrix* myDoubleMatrix, Double
 
 
 void OnlineWarpHolder::resetMatrix(DoubleMatrix* myDoubleMatrix, DoubleVector* energyVector){
-	//wendy
+
+	printf("Resetting a matrix\n");
 	myDoubleMatrix->clear();
 	energyVector->clear();
 	
@@ -1233,6 +1233,7 @@ void OnlineWarpHolder::iterateThroughAudioMatrix(DoubleMatrix* myDoubleMatrix, D
 
 
 void OnlineWarpHolder::processFrameToMatrix(float newframe[], DoubleMatrix* myDoubleMatrix, DoubleVector* energyVector){
+	//printf("processing [%f]\n", newframe[0]);
 	
 	double doubleFrame[FRAMESIZE];
 	for (int k = 0;k< FRAMESIZE;k++){
@@ -1374,11 +1375,12 @@ void OnlineWarpHolder::keyPressed  (int key){
 		if (getFilenameFromDialogBox(filePtr)){
 			printf("Loaded name okay :\n'%s' \n", secondFileName.c_str());	
 		}
-		
-		loadSecondAudio(secondFileName);
-		
+	
 		initialiseVariables();
 		backwardsAlignmentIndex = 0;
+		
+		loadSecondAudio(secondFileName);
+		tw.initialiseVariables();
 		
 		calculateSimilarityAndAlignment();
 		
@@ -1544,7 +1546,7 @@ void OnlineWarpHolder::loadNewAudio(string soundFileName){
 
 
 void OnlineWarpHolder::loadFirstAudioFile(){
-	
+	//the reference file
 	processAudioToDoubleMatrix(&tw.chromaMatrix, &tw.firstEnergyVector);
 	
 	
@@ -1557,10 +1559,12 @@ void OnlineWarpHolder::loadSecondAudio(string sndFileName){
 	const char	*infilenme = sndFileName.c_str() ;	
 	loadLibSndFile(infilenme);
 	
+	//the 'live' file to be analysed
 	processAudioToMatrix(&tw.secondMatrix, &tw.secondEnergyVector);
-	//	processAudioToDoubleMatrix(&tw.secondMatrix, &tw.secondEnergyVector);
+	//	processAudioToDoubleMatrix(&tw.secondMatrix, &tw.secondEnergyVector); - I guess non causal way
 	
 }
+
 
 
 void OnlineWarpHolder::swapBetweenPlayingFilesUsingAlignmentMatch(){

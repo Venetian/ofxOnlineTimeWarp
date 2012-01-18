@@ -197,7 +197,7 @@ public:
 	int xIndex;
 	
 	bool firstAudioFilePlaying;
-	ofSoundPlayer  loadedAudio;
+	ofSoundPlayer loadedAudio;
 	ofSoundPlayer secondAudio;
 	ofSoundPlayer *playingAudio;
 	
