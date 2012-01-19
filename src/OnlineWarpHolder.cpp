@@ -126,13 +126,13 @@ void OnlineWarpHolder::setup(){
 	
 	tw.initialiseVariables();
 	
-	loadNewAudio(fullFileName);
+	loadFirstAudio(fullFileName);
 	
-	loadSecondAudio(secondFileName);//i.e. load same as first file
-	
-	backwardsAlignmentIndex = 0;//remember that this goes backwards!
+	loadSecondAudio(secondFileName);//i.e. load same as first file	
+
 
 	
+	backwardsAlignmentIndex = 0;//remember that this goes backwards!
 	calculateSimilarityAndAlignment();
 
 	
@@ -158,9 +158,11 @@ void OnlineWarpHolder::calculateSimilarityAndAlignment(){
 //		printf ("SiZe of chromasim[%i] is %i\n", i, (int)tw.chromaSimilarityMatrix[i].size());
 //	}
 	
-	printf("CHROMA SIM SIZE HERE IS %i by %i\n", (int) tw.chromaSimilarityMatrix.size(),  (int) tw.chromaSimilarityMatrix[0].size());
+	printf("CHROMA SIZE HERE IS %i \n", (int) tw.chromaSimilarityMatrix.size());
+	printf(" by %i\n",  (int) tw.chromaSimilarityMatrix[0].size());
 //	tw.initialiseVariables(); //zaps everything - now called before the fn
-	if (1 == 1){//redo chroma sim
+	if (1 == 2){
+		//redo chroma sim - the offline way
 	tw.chromaSimilarityMatrix.clear();
 	tw.calculateChromaSimilarityMatrix(&tw.chromaMatrix,  &tw.secondMatrix, &tw.chromaSimilarityMatrix);
 	printChromaSimilarityMatrix(20);
@@ -253,38 +255,54 @@ void OnlineWarpHolder::resetForwardsPath(){
 	tw.forwardsAlignmentPath.clear();
 	//causal part
 	
-	int startFrameY = 0;
-	int startFrameX = 0;
+	anchorStartFrameY = 0;
+	anchorStartFrameX = 0;
 	tw.anchorPoints.clear();
 }
 
 void OnlineWarpHolder::calculateForwardsAlignment(){
 	
-	resetForwardsPath();
-	int startFrameY = 0;
-	for (int startFrameX = 0;startFrameX < tw.firstEnergyVector.size(); startFrameX += alignmentHopsize){//tw.firstChromaEnergyMatrix.size()
-		//replace this with a while startFrame < end of file
-		tw.addAnchorPoints(startFrameX, startFrameY);
-		printf("ADD ANCHOR POINTS %i and %i\n", startFrameX, startFrameY);
-		computeAlignmentForBlock(startFrameX);
+	//resetForwardsPath() - moved for reset on loading second file - online needs to happen when we start aligning
+	//int anchorStartFrameY = 0;
+	for (;anchorStartFrameX < tw.firstEnergyVector.size(); anchorStartFrameX += alignmentHopsize){
 		
-		startFrameY = tw.forwardsAlignmentPath[1][(tw.forwardsAlignmentPath[0].size()-1)];
-		
+		tw.addAnchorPoints(anchorStartFrameX, anchorStartFrameY);
+		printf("\nADD ANCHOR POINTS %i and %i\n", anchorStartFrameX, anchorStartFrameY);
+
+		computeAlignmentForBlock(anchorStartFrameX);
+		anchorStartFrameY = tw.forwardsAlignmentPath[1][(tw.forwardsAlignmentPath[0].size()-1)];
+
 	}//end for startFrameX
 	
+//	alternativeCausalForwardsAlignment();
 }
+
+void  OnlineWarpHolder::alternativeCausalForwardsAlignment(){
+	tw.addAnchorPoints(anchorStartFrameX, anchorStartFrameY);
+	
+	for (int i =0;i < tw.firstEnergyVector.size();i++){
+		//if ()
+	}
+
+}
+
+void  OnlineWarpHolder::newAnchorPointReached(){
+	tw.addAnchorPoints(anchorStartFrameX, anchorStartFrameY);
+	printf("\nADD ANCHOR POINTS %i and %i\n", anchorStartFrameX, anchorStartFrameY);
+	
+	computeAlignmentForBlock(anchorStartFrameX);
+	anchorStartFrameY = tw.forwardsAlignmentPath[1][(tw.forwardsAlignmentPath[0].size()-1)];
+}
+
 
 void OnlineWarpHolder::computeAlignmentForBlock(const int& startFrameX){
 	int startFrameY = 0;
 	if (tw.anchorPoints.size() > 0)
 		startFrameY = tw.anchorPoints[tw.anchorPoints.size()-1][1];
 	
-	
-	
-	
 	//NEED TO ASSUME WE DON'T HAVE 
 	double timeBefore = ofGetElapsedTimef();
-	printf("PART SIM: startFrameX %i, startFrameY: %i\n", startFrameX, startFrameY);
+//	printf("PART SIM: startFrameX %i, startFrameY: %i\n", startFrameX, startFrameY);
 	//NEW FUNCTION - calls only the energy and uses the stored chromagram	
 	
 	tw.calculatePartJointSimilarityMatrix(&tw.firstEnergyVector, &tw.secondEnergyVector, &tw.chromaSimilarityMatrix, &tw.tmpSimilarityMatrix, 
@@ -298,8 +316,6 @@ void OnlineWarpHolder::computeAlignmentForBlock(const int& startFrameX){
 	//	printf("PART SIM MATRIX CAL TAKES %f\n", elapsedTime);
 	
 	//change part sim to have a y limit too
-	
-	
 	//check if we can not calculate alignment matrix for chunks of the sim matrix where it is off diagonal
 	
 	tw.calculatePartAlignmentMatrix(tw.tmpSimilarityMatrix.size()-1, tw.tmpSimilarityMatrix[0].size()-1, &tw.tmpAlignmentMeasureMatrix, &tw.tmpSimilarityMatrix);
@@ -313,9 +329,9 @@ void OnlineWarpHolder::computeAlignmentForBlock(const int& startFrameX){
 	 printf("Alignment[%i] : %f\n", i, tw.alignmentMeasureMatrix[tw.similarityMatrix.size()-1][i]);
 	 }
 	 */
-	printf("\n CALC PART ALIGNMENT MIN PATH\n");
+//	printf("\n CALC PART ALIGNMENT MIN PATH\n");
 	tw.calculateMinimumAlignmentPath(&tw.tmpAlignmentMeasureMatrix, &tw.tmpBackwardsPath, true);//true is for greedy calculation
-	printf("\n PART ALIGNMENT GENERATES THIS BACKWARDS PATH:: \n");
+//	printf("\n PART ALIGNMENT GENERATES THIS BACKWARDS PATH:: \n");
 	tw.extendForwardAlignmentPath(alignmentHopsize, &tw.tmpBackwardsPath, startFrameX, startFrameY);
 	
 	//startFrameY = tw.forwardsAlignmentPath[1][(tw.forwardsAlignmentPath[0].size()-1)];
@@ -1235,7 +1251,10 @@ void OnlineWarpHolder::iterateThroughAudioMatrix(DoubleMatrix* myDoubleMatrix, D
 		
 		// read FRAMESIZE samples from 'infile' and save in 'data'
 		readcount = sf_read_float(infile, frame, FRAMESIZE);
-		processFrameToMatrix(frame, myDoubleMatrix, energyVector);
+		
+		if (processFrameToMatrix(frame, myDoubleMatrix, energyVector)){//i.e. new chromagram calculated
+			extendChromaSimilarityMatrix(myDoubleMatrix, energyVector);
+		}
 		
 		
 	}//end while readcount
@@ -1248,8 +1267,22 @@ void OnlineWarpHolder::iterateThroughAudioMatrix(DoubleMatrix* myDoubleMatrix, D
 }
 
 
-void OnlineWarpHolder::processFrameToMatrix(float newframe[], DoubleMatrix* myDoubleMatrix, DoubleVector* energyVector){
+void OnlineWarpHolder::extendChromaSimilarityMatrix(DoubleMatrix* myDoubleMatrix, DoubleVector* energyVector){
+	printf("Extend: sending to causal part\n");
+	printChromagramMatrix(20, (*myDoubleMatrix));
+	
+	tw.calculateCausalChromaSimilarityMatrix(tw.chromaMatrix, tw.secondMatrix, tw.chromaSimilarityMatrix);//whichever order as one is extended
+	
+	if (tw.chromaMatrix.size() < 20){
+		printChromaSimilarityMatrix(20);
+	}else{
+		printf("chr sim size %i\n", (int)tw.chromaSimilarityMatrix.size());
+	}
+}
+
+bool OnlineWarpHolder::processFrameToMatrix(float newframe[], DoubleMatrix* myDoubleMatrix, DoubleVector* energyVector){
 	//printf("processing [%f]\n", newframe[0]);
+	bool chromaReady = false;
 	
 	double doubleFrame[FRAMESIZE];
 	for (int k = 0;k< FRAMESIZE;k++){
@@ -1267,21 +1300,13 @@ void OnlineWarpHolder::processFrameToMatrix(float newframe[], DoubleMatrix* myDo
 			d.push_back(chromaG.rawChroma[i]);// / chromaG->maximumChromaValue);
 			
 		}	
-		//this would do chord detection
+		//could do chord detection here too 	
 		
 		myDoubleMatrix->push_back(d);
+		chromaReady = true;
+		
 		//so now is storing at d[i][current_index]
 		
-		printf("sending to causal part\n");
-		printChromagramMatrix(20, (*myDoubleMatrix));
-		
-		tw.calculateCausalChromaSimilarityMatrix(tw.chromaMatrix, tw.secondMatrix, tw.chromaSimilarityMatrix);//whichever order as one is extended
-		
-		if (tw.secondMatrix.size() < 20){
-			printChromaSimilarityMatrix(20);
-		}else{
-		printf("chr sim size %i\n", (int)tw.chromaSimilarityMatrix.size());
-		}
 	}//end if chromagRamm ready
 	
 	
@@ -1291,6 +1316,7 @@ void OnlineWarpHolder::processFrameToMatrix(float newframe[], DoubleMatrix* myDo
 	if (energyValue > energyMaximumValue)
 		energyMaximumValue = energyValue;
 	
+	return chromaReady;
 	
 }
 
@@ -1463,7 +1489,7 @@ void OnlineWarpHolder::openNewAudioFileWithdialogBox(){
 	}
 	
 	//openFileDialogBox(); - replaced this lone by call to openFile Dialoguebox
-	loadNewAudio(soundFileName);
+	loadFirstAudio(soundFileName);
 	
 }
 
@@ -1551,22 +1577,26 @@ void OnlineWarpHolder::openFileDialogBox(){
 }
 
 
-void OnlineWarpHolder::loadNewAudio(string soundFileName){
-	//need to add in clear fns
-	//	tw.chromaMatrix.clear();
-	//	tw.firstEnergyVector.clear();
-	tw.clearVectors();
+void OnlineWarpHolder::loadFirstAudio(string soundFileName){
+
+	tw.clearVectors();//clear ALL info in timeWarp - chromaSim and alignment etc
 
 	loadedAudio.loadSound(soundFileName);
-	playingAudio = &loadedAudio;
+	playingAudio = &loadedAudio;	//load sound for playback
+
 
 	const char	*infilename = soundFileName.c_str() ;
 	loadLibSndFile(infilename);
 	//	loadFirstAudioFile();
 	
-	resetMatrix(&tw.chromaMatrix, &tw.firstEnergyVector);
-	processAudioToDoubleMatrix(&tw.chromaMatrix, &tw.firstEnergyVector);
-	printf("FIRST file\n");
+	printf("Load FIRST file %s\n", soundFileName.c_str());
+
+	resetMatrix(&tw.chromaMatrix, &tw.firstEnergyVector);//not strictly needed as in next fn
+
+//	resetForwardsPath();//sets anchor points and wipes previous forwards path
+	
+	processAudioToDoubleMatrix(&tw.chromaMatrix, &tw.firstEnergyVector);//non causal way for first audio (ref) file
+	
 	printChromagramMatrix(20, tw.chromaMatrix);
 	//processAudioToMatrix(&tw.chromaMatrix, &tw.firstEnergyVector);
 	
@@ -1577,24 +1607,20 @@ void OnlineWarpHolder::loadNewAudio(string soundFileName){
 
 
 
-void OnlineWarpHolder::loadFirstAudioFile(){
-	//the reference file
-	processAudioToDoubleMatrix(&tw.chromaMatrix, &tw.firstEnergyVector);
-	printf("load first file\n");
-	printChromagramMatrix(20, tw.chromaMatrix);
-	
-}
-
 void OnlineWarpHolder::loadSecondAudio(string sndFileName){
 	
 	secondAudio.loadSound(sndFileName);
 	
 	const char	*infilenme = sndFileName.c_str() ;	
 	loadLibSndFile(infilenme);
+	printf("Load SECOND file\n");
+	
+	
+	resetForwardsPath();//sets anchor points and wipes previous forwards path
 	
 	//the 'live' file to be analysed
 	processAudioToMatrix(&tw.secondMatrix, &tw.secondEnergyVector);
-		printf("SECOND file\n");
+		
 	printChromagramMatrix(20, tw.secondMatrix);
 	
 	//	processAudioToDoubleMatrix(&tw.secondMatrix, &tw.secondEnergyVector); - I guess non causal way

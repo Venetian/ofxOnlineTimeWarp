@@ -1,2 +1,10 @@
 Online dynamic time warping
 
+
+Causal version
+
+Non-normalised chroma energy means causal doesn't work for the euclidean distance
+
+works okay it seems for dot product
+
+

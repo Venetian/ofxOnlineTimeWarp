@@ -382,6 +382,7 @@ double TimeWarp::getEuclideanDistance(int x, int y, DoubleMatrix* firstChromaMat
 			newDistance = (*firstChromaMatrix)[x][z] - (*secondChromaMatrix)[y][z];
 			distance += newDistance*newDistance;
 		}
+		distance /=  (*firstChromaMatrix)[x].size();
 	}
 	
 	return 1-sqrt(distance);

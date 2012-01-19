@@ -58,7 +58,7 @@ public:
 	void drawAlignmentmeasureValues(const int& startingYframe);
 	void drawChromoGram();
 	
-	void loadFirstAudioFile();
+
 	void initialiseVariables();
 	
 	void clearVectors();
@@ -139,15 +139,22 @@ public:
 	void drawForwardsAlignmentPathOnChromaSimilarity(const int& startingXFrame, const int& startingYFrame);
 	void drawAnchorPointsOnChromaSimilarity(const int& startingXFrame, const int& startingYFrame);
 	
+	
+	void alternativeCausalForwardsAlignment();
+	void newAnchorPointReached();
+	
 	void processAudioToDoubleMatrix(DoubleMatrix* myDoubleMatrix, DoubleVector* energyVector);
 	void processAudioToMatrix(DoubleMatrix* myDoubleMatrix, DoubleVector* energyVector);
 	//online version
-	void processFrameToMatrix(float newframe[], DoubleMatrix* myDoubleMatrix, DoubleVector* energyVector);
+	bool processFrameToMatrix(float newframe[], DoubleMatrix* myDoubleMatrix, DoubleVector* energyVector);
+	
 	void iterateThroughAudioMatrix(DoubleMatrix* myDoubleMatrix, DoubleVector* energyVector);
+	void extendChromaSimilarityMatrix(DoubleMatrix* myDoubleMatrix, DoubleVector* energyVector);
+	
 	void resetMatrix(DoubleMatrix* myDoubleMatrix, DoubleVector* energyVector);
 	void printMatrixData(DoubleMatrix* myDoubleMatrix, DoubleVector* energyVector);
 	
-	void loadNewAudio(string soundFileName);
+	void loadFirstAudio(string soundFileName);
 	void loadSecondAudio(string sndFileName);
 	
 	void loadSoundFiles();
@@ -230,6 +237,9 @@ public:
 	void dontDoJunkAlignment();
 	void calculateCausalAlignment();
 	bool doCausalAlignment;
+	
+	int anchorStartFrameX;
+	int anchorStartFrameY;
 	
 	ofxSoundFileLoader* soundFileLoader;
 };
