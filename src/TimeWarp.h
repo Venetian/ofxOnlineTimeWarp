@@ -80,6 +80,8 @@ public:
 	double getChromaSimilarity(int x, int y, DoubleMatrix* firstChromaMatrix, DoubleMatrix* secondChromaMatrix);
 	double getEuclideanDistance(int x, int y, DoubleMatrix* firstChromaMatrix, DoubleMatrix* secondChromaMatrix);
 	void calculateChromaSimilarityMatrix(DoubleMatrix* firstChromaMatrix, DoubleMatrix* secondChromaMatrix, DoubleMatrix* simMatrix);
+	void calculateCausalChromaSimilarityMatrix(DoubleMatrix& firstChromaMatrix, DoubleMatrix& secondChromaMatrix, DoubleMatrix& simMatrix);
+
 	
 	void calculateSimilarityMatrix();
 

@@ -89,6 +89,8 @@ public:
 	bool drawSimilarity;
 	void drawSimilarityMatrix();
 	void printSimilarityMatrix(int sizeToPrint);
+	void printChromaSimilarityMatrix(int sizeToPrint);
+	void printChromagramMatrix(int sizeToPrint, DoubleMatrix& matrix);
 	void setConversionRatio();
 	void printVariousMatrixInfo();
 	void doPathBugCheck();

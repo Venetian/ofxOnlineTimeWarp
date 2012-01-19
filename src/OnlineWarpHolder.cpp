@@ -59,8 +59,8 @@ void OnlineWarpHolder::setup(){
 	
 	soundFileLoader = new  ofxSoundFileLoader();
 	
-	alignmentHopsize = 300;
-	alignmentFramesize = 1200;
+	alignmentHopsize = 200;
+	alignmentFramesize = 1000;
 	
 	doCausalAlignment = true;
 	
@@ -107,24 +107,6 @@ void OnlineWarpHolder::setup(){
 	chromaG.initialise(FRAMESIZE, CHROMAGRAM_FRAMESIZE);
 	onset = new OnsetDetectionFunction(512,1024,6,1);
 	
-	//loading audio files
-	//loadSoundFiles();	
-	//this os load soundfiles
-	
-	string fullFileName = "/Users/andrew/Documents/work/programming/of_preRelease_v007_osx/apps/myOpenFrameworks007/ofxOnlineTimeWarp/bin/data/sound/Bach_short1.wav";
-	secondFileName = "/Users/andrew/Documents/work/programming/of_preRelease_v007_osx/apps/myOpenFrameworks007/ofxOnlineTimeWarp/bin/data/sound/Bach_short2.wav";	
-	
-	
-	loadNewAudio(fullFileName);
-	
-	loadSecondAudio(secondFileName);//i.e. load same as first file
-	
-	backwardsAlignmentIndex = 0;//remember that this goes backwards!
-	
-	tw.initialiseVariables();
-	
-	calculateSimilarityAndAlignment();
-	
 	//set not to play
 	audioPlaying = false;
 	
@@ -135,6 +117,24 @@ void OnlineWarpHolder::setup(){
 	screenHeight = ofGetHeight() ;
 	screenWidth = ofGetWidth();
 	
+	//loading audio files
+	//loadSoundFiles();	
+	//this os load soundfiles
+	
+	string fullFileName = "/Users/andrew/Documents/work/programming/of_preRelease_v007_osx/apps/myOpenFrameworks007/ofxOnlineTimeWarp/bin/data/sound/Bach_short1.wav";
+	secondFileName = "/Users/andrew/Documents/work/programming/of_preRelease_v007_osx/apps/myOpenFrameworks007/ofxOnlineTimeWarp/bin/data/sound/Bach_short2.wav";	
+	
+	tw.initialiseVariables();
+	
+	loadNewAudio(fullFileName);
+	
+	loadSecondAudio(secondFileName);//i.e. load same as first file
+	
+	backwardsAlignmentIndex = 0;//remember that this goes backwards!
+
+	
+	calculateSimilarityAndAlignment();
+
 	
 	initialiseVariables();
 	
@@ -147,11 +147,24 @@ void OnlineWarpHolder::exit(){
 
 void OnlineWarpHolder::calculateSimilarityAndAlignment(){
 	
-//	tw.initialiseVariables(); //zaps everything - now called before the fn
+	
 	
 	//here is the main TimeWarp similarity matrix calc, the minimum alignment matrix via dtw and then the backwards path estimate 
 	double timeBefore = ofGetElapsedTimef();
+	
+	printf("FIRST THE CAUSAL WAY\n");
+	printChromaSimilarityMatrix(20);
+//	for (int i = 0;i < tw.chromaSimilarityMatrix.size();i++){
+//		printf ("SiZe of chromasim[%i] is %i\n", i, (int)tw.chromaSimilarityMatrix[i].size());
+//	}
+	
+	printf("CHROMA SIM SIZE HERE IS %i by %i\n", (int) tw.chromaSimilarityMatrix.size(),  (int) tw.chromaSimilarityMatrix[0].size());
+//	tw.initialiseVariables(); //zaps everything - now called before the fn
+	if (1 == 1){//redo chroma sim
+	tw.chromaSimilarityMatrix.clear();
 	tw.calculateChromaSimilarityMatrix(&tw.chromaMatrix,  &tw.secondMatrix, &tw.chromaSimilarityMatrix);
+	printChromaSimilarityMatrix(20);
+	}
 	
 	double elapsedTime = ofGetElapsedTimef() - timeBefore;
 	printf("CHROMA SIMILARITY ONLY TAKES %2.2f seconds\n", elapsedTime);
@@ -186,7 +199,7 @@ void OnlineWarpHolder::doPathBugCheck(){
 
 void OnlineWarpHolder::calculateCausalAlignment(){
 	calculateForwardsAlignment();
-	doPathBugCheck();
+	doPathBugCheck();//fixes problem if first entry not 0
 	tw.copyForwardsPathToBackwardsPath();
 }
 
@@ -372,8 +385,10 @@ void OnlineWarpHolder::draw(){
 		//but chroma sim used for representation
 		
 	}
-	else
+	else{
 		drawDoubleMatrix(&tw.tmpSimilarityMatrix);
+	//	drawDoubleMatrix(&tw.chromaSimilarityMatrix);
+	}
 	//drawChromoGram();
 	
 	
@@ -692,6 +707,7 @@ void OnlineWarpHolder::drawChromaSimilarityMatrix(){
 	
 	int *indexOfAlignmentPathTested;
 	int lengthOfPath = 0;
+	
 	if (tw.backwardsAlignmentPath.size() > 0)
 		lengthOfPath = tw.backwardsAlignmentPath[0].size()-1;
 	
@@ -1119,8 +1135,6 @@ void OnlineWarpHolder::processAudioToDoubleMatrix(DoubleMatrix* myDoubleMatrix, 
 	myDoubleMatrix->clear();
 	energyVector->clear();
 	
-	
-	
 	chromaG.initialise(FRAMESIZE, CHROMAGRAM_FRAMESIZE);//framesize 512 and hopsize 2048 - already done
 	chromaG.maximumChromaValue = 1;
 	double maximumEnergyValue = 1;
@@ -1181,7 +1195,7 @@ void OnlineWarpHolder::processAudioToDoubleMatrix(DoubleMatrix* myDoubleMatrix, 
 	}
 	
 	
-	printf("size of energy vector is %d \n", (int)energyVector->size());	
+	printf("size of energy vector is %d and maximum energy value is %f\n", (int)energyVector->size(), maximumEnergyValue);	
 	//non causal normalisation
 	for (int i = 0; i < energyVector->size();i++){
 		(*energyVector)[i] /= maximumEnergyValue;
@@ -1210,6 +1224,7 @@ void OnlineWarpHolder::resetMatrix(DoubleMatrix* myDoubleMatrix, DoubleVector* e
 	chromaG.initialise(FRAMESIZE, CHROMAGRAM_FRAMESIZE);//framesize 512 and hopsize 2048 - already done
 	chromaG.maximumChromaValue = 1;
 	energyMaximumValue = 1;
+
 }
 
 void OnlineWarpHolder::iterateThroughAudioMatrix(DoubleMatrix* myDoubleMatrix, DoubleVector* energyVector){
@@ -1221,6 +1236,7 @@ void OnlineWarpHolder::iterateThroughAudioMatrix(DoubleMatrix* myDoubleMatrix, D
 		// read FRAMESIZE samples from 'infile' and save in 'data'
 		readcount = sf_read_float(infile, frame, FRAMESIZE);
 		processFrameToMatrix(frame, myDoubleMatrix, energyVector);
+		
 		
 	}//end while readcount
 	
@@ -1248,7 +1264,7 @@ void OnlineWarpHolder::processFrameToMatrix(float newframe[], DoubleMatrix* myDo
 		DoubleVector d;
 		
 		for (int i = 0;i<12;i++){
-			d.push_back(chromaG.rawChroma[i]);// / chromaG->maximumChromaValue);	
+			d.push_back(chromaG.rawChroma[i]);// / chromaG->maximumChromaValue);
 			
 		}	
 		//this would do chord detection
@@ -1256,6 +1272,16 @@ void OnlineWarpHolder::processFrameToMatrix(float newframe[], DoubleMatrix* myDo
 		myDoubleMatrix->push_back(d);
 		//so now is storing at d[i][current_index]
 		
+		printf("sending to causal part\n");
+		printChromagramMatrix(20, (*myDoubleMatrix));
+		
+		tw.calculateCausalChromaSimilarityMatrix(tw.chromaMatrix, tw.secondMatrix, tw.chromaSimilarityMatrix);//whichever order as one is extended
+		
+		if (tw.secondMatrix.size() < 20){
+			printChromaSimilarityMatrix(20);
+		}else{
+		printf("chr sim size %i\n", (int)tw.chromaSimilarityMatrix.size());
+		}
 	}//end if chromagRamm ready
 	
 	
@@ -1376,11 +1402,14 @@ void OnlineWarpHolder::keyPressed  (int key){
 			printf("Loaded name okay :\n'%s' \n", secondFileName.c_str());	
 		}
 	
+		
+		
 		initialiseVariables();
 		backwardsAlignmentIndex = 0;
+		tw.chromaSimilarityMatrix.clear();
+		tw.initialiseVariables();
 		
 		loadSecondAudio(secondFileName);
-		tw.initialiseVariables();
 		
 		calculateSimilarityAndAlignment();
 		
@@ -1526,19 +1555,22 @@ void OnlineWarpHolder::loadNewAudio(string soundFileName){
 	//need to add in clear fns
 	//	tw.chromaMatrix.clear();
 	//	tw.firstEnergyVector.clear();
-	
+	tw.clearVectors();
+
 	loadedAudio.loadSound(soundFileName);
 	playingAudio = &loadedAudio;
-	//snd file method
+
 	const char	*infilename = soundFileName.c_str() ;
 	loadLibSndFile(infilename);
 	//	loadFirstAudioFile();
-	//	processAudioToDoubleMatrix(&tw.chromaMatrix, &tw.firstEnergyVector);
-	processAudioToMatrix(&tw.chromaMatrix, &tw.firstEnergyVector);
+	
+	resetMatrix(&tw.chromaMatrix, &tw.firstEnergyVector);
+	processAudioToDoubleMatrix(&tw.chromaMatrix, &tw.firstEnergyVector);
+	printf("FIRST file\n");
+	printChromagramMatrix(20, tw.chromaMatrix);
+	//processAudioToMatrix(&tw.chromaMatrix, &tw.firstEnergyVector);
 	
 	soundFileLoader->loadLibSndFile(infilename);//LOADS IT INTO SOUNDFILE.AUDIOHOLDER.AUDIOVECTOR
-	
-	
 	
 	audioPlaying = false;
 }
@@ -1548,7 +1580,8 @@ void OnlineWarpHolder::loadNewAudio(string soundFileName){
 void OnlineWarpHolder::loadFirstAudioFile(){
 	//the reference file
 	processAudioToDoubleMatrix(&tw.chromaMatrix, &tw.firstEnergyVector);
-	
+	printf("load first file\n");
+	printChromagramMatrix(20, tw.chromaMatrix);
 	
 }
 
@@ -1561,6 +1594,9 @@ void OnlineWarpHolder::loadSecondAudio(string sndFileName){
 	
 	//the 'live' file to be analysed
 	processAudioToMatrix(&tw.secondMatrix, &tw.secondEnergyVector);
+		printf("SECOND file\n");
+	printChromagramMatrix(20, tw.secondMatrix);
+	
 	//	processAudioToDoubleMatrix(&tw.secondMatrix, &tw.secondEnergyVector); - I guess non causal way
 	
 }
@@ -1654,6 +1690,27 @@ int OnlineWarpHolder::findMatchFromAlignment(bool whichFileToTest){
 	
 }
 
+
+void OnlineWarpHolder::printChromagramMatrix(int sizeToPrint, DoubleMatrix& matrix){
+	
+	printf("\n _ _ _ _\n");
+	printf("ChromaGram Matrix \n");
+	int i,j;
+	DoubleVector d;
+	int rowSize = min(sizeToPrint, (int) matrix.size());
+	
+	for (int j = 0;j < rowSize;j++){
+		printf("row %i : ", j);
+		
+		for (i = 0;i < 12;i++){			
+			printf("%f , ", matrix[j][i] );
+		}
+		printf("\n");
+	}
+	printf("...............\n");
+	
+}
+
 void OnlineWarpHolder::printSimilarityMatrix(int sizeToPrint){
 	
 	printf("\n _ _ _ _\n");
@@ -1666,7 +1723,27 @@ void OnlineWarpHolder::printSimilarityMatrix(int sizeToPrint){
 		printf("row %i : ", j);
 		
 		for (i = 0;i < rowSize;i++){			
-			printf("%f , ", tw.similarityMatrix[i][j] );
+			printf("%2.5f , ", tw.similarityMatrix[i][j] );
+		}
+		printf("\n");
+	}
+	printf("...............\n");
+	
+}
+
+void OnlineWarpHolder::printChromaSimilarityMatrix(int sizeToPrint){
+	
+	printf("\n _ _ _ _\n");
+	printf("Similarity Matrix \n");
+	int i,j;
+	DoubleVector d;
+	int rowSize = min(sizeToPrint, (int) tw.chromaSimilarityMatrix.size());
+	
+	for (int j = 0;j < rowSize;j++){
+		printf("row %i : ", j);
+		
+		for (i = 0;i < min(sizeToPrint, (int) tw.chromaSimilarityMatrix[j].size());i++){			
+			printf("%f , ", tw.chromaSimilarityMatrix[j][i] );
 		}
 		printf("\n");
 	}

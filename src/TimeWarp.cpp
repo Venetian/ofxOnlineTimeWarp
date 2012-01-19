@@ -36,7 +36,7 @@ TimeWarp :: TimeWarp(){
 	//diagonalPenalty = 1;//favours diagonal over other paths 
 	//diagonalPenalty = 2;//penalises diagonal so all path gradients equal weighting
 	
-	useDotProduct = false;////true - dot, falseo: Euclidean dist
+	useDotProduct = true;////true - dot, falseo: Euclidean dist
 }	
 
 // destructor
@@ -64,7 +64,7 @@ void TimeWarp::clearVectors(){
 	chromaMatrix.clear();
 	secondMatrix.clear();
 	similarityMatrix.clear();
-	chromaSimilarityMatrix.clear();
+	//chromaSimilarityMatrix.clear();
 	tmpSimilarityMatrix.clear();
 	alignmentMeasureMatrix.clear();
 	tmpAlignmentMeasureMatrix.clear();	
@@ -75,6 +75,8 @@ void TimeWarp::clearVectors(){
 }
 	
 void TimeWarp::initialiseVariables(){
+	printf("TW initialise called\n");
+	
 	similarityMatrix.clear();
 	chromaSimilarityMatrix.clear();
 	tmpSimilarityMatrix.clear();
@@ -277,6 +279,55 @@ double TimeWarp::getJointChromaAndEnergyDistance(DoubleVector* energyVectorOne, 
 }
 
 
+void TimeWarp::calculateCausalChromaSimilarityMatrix(DoubleMatrix& firstChromaMatrix, DoubleMatrix& secondChromaMatrix, DoubleMatrix& simMatrix){
+	//calculates the chroma only similarity matrix 
+	//but we have already done some, so is extending it...
+	
+	int size = 0;
+	if (simMatrix.size() > 0){
+		size = simMatrix[0].size();
+	}
+	
+	if (secondChromaMatrix.size() > size ){
+	
+	for (int x = 0;x < firstChromaMatrix.size();x++){
+		
+		if (x < simMatrix.size()){
+			//i.e. entries already exist
+				for (int y = (int)simMatrix[x].size();y < secondChromaMatrix.size();y++){
+					double distance;
+					if (useDotProduct)
+					distance = getChromaSimilarity(x, y, &firstChromaMatrix, &secondChromaMatrix);
+					else
+					distance = getEuclideanDistance(x, y, &firstChromaMatrix, &secondChromaMatrix);
+				
+				//	printf("X %i Y %i dist %f\n", x, y, distance);
+					simMatrix[x].push_back(distance);
+				}
+			}
+		else {
+			DoubleVector d;
+			for (int y = 0;y < secondChromaMatrix.size();y++){
+					double distance;
+					if (useDotProduct)
+					distance = getChromaSimilarity(x, y, &firstChromaMatrix, &secondChromaMatrix);
+					else
+					distance = getEuclideanDistance(x, y, &firstChromaMatrix, &secondChromaMatrix);
+			
+				//	printf("new row X %i Y %i dist %f\n", x, y, distance);
+					d.push_back( distance);	
+				}
+				simMatrix.push_back(d);
+			}
+		}
+	}
+			if (size > 0)
+				printf("Causial CHROMA ONLY SIM SIZE %i x %i; ", (int)simMatrix.size(), (int) simMatrix[0].size());
+		printf("First matrix SIZE %i , SECOND size %i\n", (int)firstChromaMatrix.size(), (int) secondChromaMatrix.size());	
+
+	
+}
+
 
 void TimeWarp::calculateChromaSimilarityMatrix(DoubleMatrix* firstChromaMatrix, DoubleMatrix* secondChromaMatrix, DoubleMatrix* simMatrix){
 //calculates the chroma only similarity matrix - used to reduce computation later when doing the joint energy and chroma matrix
@@ -293,7 +344,8 @@ void TimeWarp::calculateChromaSimilarityMatrix(DoubleMatrix* firstChromaMatrix, 
 		}
 		(*simMatrix).push_back(d);
 	}
-	printf("CHROMA ONLY SIM SIZE %i x %i\n", (int)(*simMatrix).size(), (int)(*simMatrix)[0].size());
+	printf("OFFLINE CHROMA ONLY SIM SIZE %i x %i\n", (int)(*simMatrix).size(), (int)(*simMatrix)[0].size());
+	printf("First matrix SIZE %i , SECOND size %i\n", (int)(*firstChromaMatrix).size(), (int)(*secondChromaMatrix).size());
 	
 }
 
@@ -450,9 +502,11 @@ void TimeWarp::calculatePartSimilarityMatrix(DoubleMatrix* firstChromaMatrix, Do
 
 
 void TimeWarp::calculatePartJointSimilarityMatrix(DoubleVector* firstEnergyVector, DoubleVector* secondEnergyVector, DoubleMatrix* chromaSimMatrix, DoubleMatrix* simMatrix, int startX, int startY, int endX, int endY){
-	printf("PART SIM CALC Calculate similarity : pointers : size %i x %i  ", startX, startY);//(int) (*firstEnergyVector).size(), (int) (*secondEnergyVector).size());
+	printf("PART SIM CALC Calculate similarity : pointers : size %i x %i, end x %i y %i  ", startX, startY, endX, endY);
+	printf("PART SIM ENERGY VEC LENGTHS %i and %i\n", (int) (*firstEnergyVector).size(), (int) (*secondEnergyVector).size());
 	
 	conversionFactor = (int) round((*firstEnergyVector).size() / (*chromaSimMatrix).size() );
+	printf("conv factor %i\n", conversionFactor);
 	simMatrix->clear();
 	
 	double energyProportion = 0.2;
