@@ -129,8 +129,7 @@ void OnlineWarpHolder::setup(){
 	
 	loadFirstAudio(fullFileName);
 	
-	resetForwardsPath();
-	backwardsAlignmentIndex = 0;//remember that this goes backwards!
+	//resetSequentialAnalysis();
 	
 	loadSecondAudio(secondFileName);//i.e. load same as first file	
 
@@ -268,6 +267,7 @@ void OnlineWarpHolder::resetForwardsPath(){
 	tw.forwardsAlignmentPath.clear();
 	//causal part
 	backwardsAlignmentIndex = 0;
+	tw.backwardsAlignmentPath.clear();
 
 	tw.anchorPoints.clear();
 	anchorStartFrameY = 0;
@@ -360,11 +360,11 @@ void OnlineWarpHolder::computeAlignmentForSecondBlock(const int& startFrameY){
 	
 	tw.calculateMinimumAlignmentPathRow(&tw.tmpAlignmentMeasureMatrix, &tw.tmpBackwardsPath, true);//true is for greedy calculation
 	
+	printf("size of TMP BACK PATH %i\n", (int) tw.tmpBackwardsPath[0].size());
 //	printf("\n PART ALIGNMENT GENERATES THIS BACKWARDS PATH:: \n");
- 
-	tw.extendForwardAlignmentPathToYanchor(alignmentHopsize, &tw.tmpBackwardsPath, startFrameX, startFrameY);
-	
 //	tw.printForwardsPath(); //MAIN PRINTING OF FORWARDS PATH GENERATED
+	
+	tw.extendForwardAlignmentPathToYanchor(alignmentHopsize, &tw.tmpBackwardsPath, startFrameX, startFrameY);
 	
 	
 }
@@ -1330,13 +1330,15 @@ void OnlineWarpHolder::iterateThroughAudioMatrix(DoubleMatrix* myDoubleMatrix, D
 		doSequentialAnalysis(frame, myDoubleMatrix, energyVector);
 		
 	}//end while readcount
+	
+	
 	if (sequentialAlignment){
+		printf("END part CAUSAL ALIGNMENT\n");
 	updateCausalAlignment();//do end part
 		
 	//backwardsAlignmentIndex = tw.backwardsAlignmentPath[0].size()-1;
 	//printf("index size is %i\n", backwardsAlignmentIndex);
 	//setConversionRatio();
-		
 	}
 	
 	printMatrixData(myDoubleMatrix, energyVector);
@@ -1351,6 +1353,7 @@ void OnlineWarpHolder::doSequentialAnalysis(float* frame, DoubleMatrix* myDouble
 		extendChromaSimilarityMatrix(myDoubleMatrix, energyVector);
 		if (sequentialAlignment && checkAlignmentWindow()){
 			updateCausalAlignment();
+			printf("updating sequential %i\n", (int)tw.backwardsAlignmentPath[0].size());
 		}
 	}
 }
@@ -1364,7 +1367,9 @@ bool OnlineWarpHolder::checkAlignmentWindow(){
 }
 
 void OnlineWarpHolder::updateCausalAlignment(){
+	printf("SEQUENTIAL STARTING ANCHORS %i,%i\n", anchorStartFrameX, anchorStartFrameY);
 	computeAlignmentForSecondBlock(anchorStartFrameY);
+	
 	anchorStartFrameX = tw.forwardsAlignmentPath[0][(tw.forwardsAlignmentPath[0].size()-1)];
 	anchorStartFrameY = tw.forwardsAlignmentPath[1][(tw.forwardsAlignmentPath[0].size()-1)];
 	printf("SEQUENTIAL ALIGNMENT ANCHORS %i,%i\n", anchorStartFrameX, anchorStartFrameY);
@@ -1697,14 +1702,12 @@ void OnlineWarpHolder::loadFirstAudio(string soundFileName){
 	
 	printf("Load FIRST file %s\n", soundFileName.c_str());
 
+	tw.initialiseVariables();
 	resetMatrix(&tw.chromaMatrix, &tw.firstEnergyVector);//not strictly needed as in next fn
 
 //	resetForwardsPath();//sets anchor points and wipes previous forwards path
 	
 	processAudioToDoubleMatrix(&tw.chromaMatrix, &tw.firstEnergyVector);//non causal way for first audio (ref) file
-	
-	//printChromagramMatrix(20, tw.chromaMatrix);
-	//processAudioToMatrix(&tw.chromaMatrix, &tw.firstEnergyVector);
 	
 	soundFileLoader->loadLibSndFile(infilename);//LOADS IT INTO SOUNDFILE.AUDIOHOLDER.AUDIOVECTOR
 	
@@ -1724,8 +1727,10 @@ void OnlineWarpHolder::loadSecondAudio(string sndFileName){
 	loadLibSndFile(infilenme);
 	printf("Load SECOND file\n");
 	
+	resetSequentialAnalysis();
+	resetMatrix(&tw.secondMatrix, &tw.secondEnergyVector);
 	
-	resetForwardsPath();//sets anchor points and wipes previous forwards path
+//	resetForwardsPath();//sets anchor points and wipes previous forwards path
 	
 	//the 'live' file to be analysed
 	processAudioToMatrix(&tw.secondMatrix, &tw.secondEnergyVector);
