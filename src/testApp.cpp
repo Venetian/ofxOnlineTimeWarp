@@ -20,7 +20,7 @@ void testApp::setup(){
 	ofSetFrameRate(30);
 
 	sampleIndex = 0;
-	outputIsSameAsInput = true;
+	outputIsSameAsInput = false;
 	
 	infoString = "this shows two sound streams being used\npress 's' to unpause the audio\n'e' to pause the audio\n";
 	infoString += "'i' to switch from using input and using sine wave for output stream";
@@ -236,14 +236,9 @@ void testApp::keyPressed  (int key){
 	
 	
 	if( key == 'x' && !causalAnalysisStarted){
-		printf("Start LIVE causal analysis\n");
-		
+		printf("Start causal analysis\n");
+		warpHolder->resetMatrix(&(warpHolder->tw.secondMatrix), &(warpHolder->tw.secondEnergyVector));
 		causalAnalysisStarted = true;
-		warpHolder->resetSequentialAnalysis();
-	}
-	if (key == 'p' || key == 'o' || key == 'z'){
-	causalAnalysisStarted = false;
-	//stop online
 	}
 	
 	if( key == 'e' ){
@@ -307,10 +302,8 @@ void testApp::audioInputListener(ofxAudioEventArgs &args){
 	// samples are "interleaved"
 	int numCounted = 0;	
 	
-	
 	if(setupFinished && args.deviceID == inputDeviceID){
-	
-	//	printf("buffersize %i\n", args.bufferSize);
+		
 		for (int i = 0; i < args.bufferSize; i++){
 			leftAudioIn[i] = args.buffer[i*2];
 			rightAudioIn[i] = args.buffer[i*2+1];
@@ -325,11 +318,11 @@ void testApp::audioInputListener(ofxAudioEventArgs &args){
 		smoothedVol += 0.07 * curVol;
 		bufferCounter++;
 		
-
 		if (causalAnalysisStarted){
-			warpHolder->doSequentialAnalysis(&leftAudioIn[0], &warpHolder->tw.secondMatrix, &warpHolder->tw.secondEnergyVector);
+			//processFrameToMatrix(frame, myDoubleMatrix, energyVector);
+			warpHolder->processFrameToMatrix(&leftAudioIn[0], &(warpHolder->tw.secondMatrix), &(warpHolder->tw.secondEnergyVector));
 		}
-	
+		
 		
 	}//end if we have finished set up the floats to hold the audio
 	

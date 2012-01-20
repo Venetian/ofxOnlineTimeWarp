@@ -26,7 +26,7 @@
 #define ENERGY_LENGTH 80000
 #define CHROMA_LENGTH 12000
 #define CHROMA_CONVERSION_FACTOR 16 //16 times as many frames in energy as in chroma
-#define CHROMAGRAM_FRAMESIZE 2048 //although this is downsampled by 4
+#define CHROMAGRAM_FRAMESIZE 2048
 #define FILE_LIMIT 600000
 
 //length in terms of frames (at 512 samples per frame - there are 90 per second) => 900: 10 seconds
@@ -147,8 +147,7 @@ public:
 	void drawEnergyVectorFromPointer(DoubleVector* energyVec);
 	void drawForwardsAlignmentPathOnChromaSimilarity(const int& startingXFrame, const int& startingYFrame);
 	void drawAnchorPointsOnChromaSimilarity(const int& startingXFrame, const int& startingYFrame);
-	void doSequentialAnalysis(float* frame, DoubleMatrix* myDoubleMatrix, DoubleVector* energyVector);
-	void resetSequentialAnalysis();
+	
 	
 //	void alternativeCausalForwardsAlignment();
 //	void newAnchorPointReached();
