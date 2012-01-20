@@ -147,7 +147,8 @@ public:
 	void drawEnergyVectorFromPointer(DoubleVector* energyVec);
 	void drawForwardsAlignmentPathOnChromaSimilarity(const int& startingXFrame, const int& startingYFrame);
 	void drawAnchorPointsOnChromaSimilarity(const int& startingXFrame, const int& startingYFrame);
-	
+	void doSequentialAnalysis(float* frame, DoubleMatrix* myDoubleMatrix, DoubleVector* energyVector);
+	void resetSequentialAnalysis();
 	
 //	void alternativeCausalForwardsAlignment();
 //	void newAnchorPointReached();
