@@ -82,9 +82,11 @@ public:
 	
 	//	DoubleMatrix similarityMatrix;
 	void calculateSimilarityMatrix();
-	void calculateForwardsAlignment();//forwards causal alignment version
+	void calculateFirstForwardsAlignment();//forwards causal alignment version
+	void calculateSecondForwardsAlignment();//based on Y
 	void resetForwardsPath();
-	void computeAlignmentForBlock(const int& startFrameX);
+	void computeAlignmentForFirstBlock(const int& startFrameX);
+	void computeAlignmentForSecondBlock(const int& startFrameY);
 	int alignmentHopsize, alignmentFramesize;
 	bool drawSimilarity;
 	void drawSimilarityMatrix();
@@ -95,6 +97,8 @@ public:
 	void printVariousMatrixInfo();
 	void doPathBugCheck();
 	
+	void printForwardsPath();
+	void printAlignmentMatrix(const DoubleMatrix& alignmentMatrix, int sizeToPrint);
 	void drawChromaSimilarityMatrix();
 	
 	//	DoubleMatrix alignmentMeasureMatrix;
@@ -140,8 +144,8 @@ public:
 	void drawAnchorPointsOnChromaSimilarity(const int& startingXFrame, const int& startingYFrame);
 	
 	
-	void alternativeCausalForwardsAlignment();
-	void newAnchorPointReached();
+//	void alternativeCausalForwardsAlignment();
+//	void newAnchorPointReached();
 	
 	void processAudioToDoubleMatrix(DoubleMatrix* myDoubleMatrix, DoubleVector* energyVector);
 	void processAudioToMatrix(DoubleMatrix* myDoubleMatrix, DoubleVector* energyVector);

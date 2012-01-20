@@ -118,8 +118,9 @@ public:
 	double getMinimum(int i, int j, float newValue);
 	bool extendAlignmentUp(int endIndexY, DoubleMatrix *alignmentMatrix);
 	bool extendAlignmentAlong(int endIndexX, DoubleMatrix *alignmentMatrix);
-	void calculateMinimumAlignmentPath(DoubleMatrix* alignmentMatrix, IntMatrix* backPath, bool pickMinimumFlag);//writes the backwards laignment path to *backPath
+	void calculateMinimumAlignmentPathColumn(DoubleMatrix* alignmentMatrix, IntMatrix* backPath, bool pickMinimumFlag);//writes the backwards laignment path to *backPath
 
+	void calculateMinimumAlignmentPathRow(DoubleMatrix* alignmentMatrix, IntMatrix* backPath, bool pickMinimumFlag);
 	
 	bool findPreviousMinimumInBackwardsPath(DoubleMatrix* alignmentMatrix, IntMatrix* backPath);
 	bool testForNewAlignmentMinimum(double *previousMinimum, int i, int j, DoubleMatrix* alignmentMatrix);	
@@ -127,11 +128,14 @@ public:
 	int findMinimumOfVector(DoubleVector *d);
 		
 	void extendForwardAlignmentPath(int endX, IntMatrix* backPath, int anchorPointX, int anchorPointY);//specify forwards path to extend?
+	void extendForwardAlignmentPathToYanchor(int endY, IntMatrix* backPath, int anchorPointX, int anchorPointY);
+	
 	void addNewForwardsPath(int indexX, IntMatrix* backPath, int anchorPointX, int anchorPointY);
 
 	int getMinimumIndexOfColumnFromMatrix(int i, DoubleMatrix* matrix);
+	int getMinimumIndexOfRowFromMatrix(int j, DoubleMatrix& matrix);
 	
-	
+	void addNewForwardsPathFromYindex(int indexY, IntMatrix* backPath, int anchorPointX, int anchorPointY);
 //PART ALIGNMENT FUNCTIONS
 	void calculatePartSimilarityMatrix(DoubleMatrix* firstChromaMatrix, DoubleMatrix* secondChromaMatrix, DoubleMatrix* simMatrix, int startX, int startY, int endX);
 	void calculatePartAlignmentMatrix(int endIndexX, int endIndexY, DoubleMatrix* alignmentMatrix, DoubleMatrix* simMatrix);
@@ -148,6 +152,8 @@ public:
 	
 	
 	void printBackwardsPath(int startIndex, int endIndex, const IntMatrix* backPath);
+	void printForwardsPath();
+	
 	void copyForwardsPathToBackwardsPath();
 	
 	float diagonalPenalty;

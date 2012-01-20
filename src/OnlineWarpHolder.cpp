@@ -178,7 +178,7 @@ void OnlineWarpHolder::calculateSimilarityAndAlignment(){
 	else{
 		//tw.calculateAlignmentMatrix(tw.firstChromaEnergyMatrix, tw.secondChromaEnergyMatrix, &tw.alignmentMeasureMatrix);	
 		tw.calculateAlignmentMatrix(tw.chromaMatrix, tw.secondMatrix, &tw.alignmentMeasureMatrix);	
-		tw.calculateMinimumAlignmentPath(&tw.alignmentMeasureMatrix, &tw.backwardsAlignmentPath, false);
+		tw.calculateMinimumAlignmentPathColumn(&tw.alignmentMeasureMatrix, &tw.backwardsAlignmentPath, false);
 	}
 	
 	backwardsAlignmentIndex = tw.backwardsAlignmentPath[0].size()-1;
@@ -200,7 +200,7 @@ void OnlineWarpHolder::doPathBugCheck(){
 
 
 void OnlineWarpHolder::calculateCausalAlignment(){
-	calculateForwardsAlignment();
+	calculateSecondForwardsAlignment();
 	doPathBugCheck();//fixes problem if first entry not 0
 	tw.copyForwardsPathToBackwardsPath();
 }
@@ -260,23 +260,41 @@ void OnlineWarpHolder::resetForwardsPath(){
 	tw.anchorPoints.clear();
 }
 
-void OnlineWarpHolder::calculateForwardsAlignment(){
+
+void OnlineWarpHolder::calculateFirstForwardsAlignment(){
 	
 	//resetForwardsPath() - moved for reset on loading second file - online needs to happen when we start aligning
 	//int anchorStartFrameY = 0;
-	for (;anchorStartFrameX < tw.firstEnergyVector.size(); anchorStartFrameX += alignmentHopsize){
+	for (anchorStartFrameX = 0;anchorStartFrameX < tw.firstEnergyVector.size(); anchorStartFrameX += alignmentHopsize){
 		
 		tw.addAnchorPoints(anchorStartFrameX, anchorStartFrameY);
 		printf("\nADD ANCHOR POINTS %i and %i\n", anchorStartFrameX, anchorStartFrameY);
-
-		computeAlignmentForBlock(anchorStartFrameX);
+		
+		computeAlignmentForFirstBlock(anchorStartFrameX);
 		anchorStartFrameY = tw.forwardsAlignmentPath[1][(tw.forwardsAlignmentPath[0].size()-1)];
+		
+	}//end for startFrameX
+	
+	//	alternativeCausalForwardsAlignment();
+}
+
+void OnlineWarpHolder::calculateSecondForwardsAlignment(){
+	
+	//resetForwardsPath() - moved for reset on loading second file - online needs to happen when we start aligning
+	//int anchorStartFrameY = 0;
+	for (anchorStartFrameY = 0;anchorStartFrameY < tw.secondEnergyVector.size(); anchorStartFrameY += alignmentHopsize){
+		
+		tw.addAnchorPoints(anchorStartFrameX, anchorStartFrameY);
+		printf("\n2nd ADD ANCHOR POINTS %i and %i\n", anchorStartFrameX, anchorStartFrameY);
+
+		computeAlignmentForSecondBlock(anchorStartFrameY);
+		anchorStartFrameX = tw.forwardsAlignmentPath[0][(tw.forwardsAlignmentPath[0].size()-1)];
 
 	}//end for startFrameX
 	
 //	alternativeCausalForwardsAlignment();
 }
-
+/*
 void  OnlineWarpHolder::alternativeCausalForwardsAlignment(){
 	tw.addAnchorPoints(anchorStartFrameX, anchorStartFrameY);
 	
@@ -293,9 +311,51 @@ void  OnlineWarpHolder::newAnchorPointReached(){
 	computeAlignmentForBlock(anchorStartFrameX);
 	anchorStartFrameY = tw.forwardsAlignmentPath[1][(tw.forwardsAlignmentPath[0].size()-1)];
 }
+*/
 
+void OnlineWarpHolder::computeAlignmentForSecondBlock(const int& startFrameY){
+	int startFrameX = 0;
+	
+	
+	if (tw.anchorPoints.size() > 0){
+		startFrameX = tw.anchorPoints[tw.anchorPoints.size()-1][0];
+		printf("2nd - starting X is %i (startY %i)\n", startFrameX, startFrameY);
+	}
+	
+	//NEED TO ASSUME WE DON'T HAVE 
+	double timeBefore = ofGetElapsedTimef();
+	//	printf("PART SIM: startFrameX %i, startFrameY: %i\n", startFrameX, startFrameY);
+	//NEW FUNCTION - calls only the energy and uses the stored chromagram	
+	
+	tw.calculatePartJointSimilarityMatrix(&tw.firstEnergyVector, &tw.secondEnergyVector, &tw.chromaSimilarityMatrix, &tw.tmpSimilarityMatrix, 
+										  startFrameX, startFrameY, startFrameX+3*alignmentFramesize, startFrameY + alignmentFramesize);
+	
+	printf("\nTMP SIM MATRIX\n");
+	printAlignmentMatrix(tw.tmpSimilarityMatrix, 20);
+	
+	//	printf("TMP size of tmp sim is %i\n", (int)tw.tmpSimilarityMatrix.size());	
+	double elapsedTime = ofGetElapsedTimef() - timeBefore;
+	//	printf("PART SIM MATRIX CAL TAKES %f\n", elapsedTime);
+	
+	printf("TMP ALIGN MATRIX restricted only by %i x %i \n", (int)tw.tmpSimilarityMatrix.size()-1, (int) tw.tmpSimilarityMatrix[0].size()-1);
+	tw.calculatePartAlignmentMatrix(tw.tmpSimilarityMatrix.size()-1, tw.tmpSimilarityMatrix[0].size()-1, &tw.tmpAlignmentMeasureMatrix, &tw.tmpSimilarityMatrix);
+	
 
-void OnlineWarpHolder::computeAlignmentForBlock(const int& startFrameX){
+	
+	printAlignmentMatrix(tw.tmpAlignmentMeasureMatrix, 20);
+	
+	//	printf("\n CALC PART ALIGNMENT MIN PATH\n");
+	tw.calculateMinimumAlignmentPathRow(&tw.tmpAlignmentMeasureMatrix, &tw.tmpBackwardsPath, true);//true is for greedy calculation
+	
+	//	printf("\n PART ALIGNMENT GENERATES THIS BACKWARDS PATH:: \n");
+	tw.extendForwardAlignmentPathToYanchor(alignmentHopsize, &tw.tmpBackwardsPath, startFrameX, startFrameY);
+	
+	tw.printForwardsPath();
+	
+	
+}
+
+void OnlineWarpHolder::computeAlignmentForFirstBlock(const int& startFrameX){
 	int startFrameY = 0;
 	if (tw.anchorPoints.size() > 0)
 		startFrameY = tw.anchorPoints[tw.anchorPoints.size()-1][1];
@@ -306,7 +366,7 @@ void OnlineWarpHolder::computeAlignmentForBlock(const int& startFrameX){
 	//NEW FUNCTION - calls only the energy and uses the stored chromagram	
 	
 	tw.calculatePartJointSimilarityMatrix(&tw.firstEnergyVector, &tw.secondEnergyVector, &tw.chromaSimilarityMatrix, &tw.tmpSimilarityMatrix, 
-										  startFrameX, startFrameY, startFrameX+alignmentFramesize, startFrameY + 3*alignmentFramesize);
+										  startFrameX, startFrameY, startFrameX+3*alignmentFramesize, startFrameY + alignmentFramesize);
 	
 	
 	
@@ -330,7 +390,7 @@ void OnlineWarpHolder::computeAlignmentForBlock(const int& startFrameX){
 	 }
 	 */
 //	printf("\n CALC PART ALIGNMENT MIN PATH\n");
-	tw.calculateMinimumAlignmentPath(&tw.tmpAlignmentMeasureMatrix, &tw.tmpBackwardsPath, true);//true is for greedy calculation
+	tw.calculateMinimumAlignmentPathColumn(&tw.tmpAlignmentMeasureMatrix, &tw.tmpBackwardsPath, true);//true is for greedy calculation
 //	printf("\n PART ALIGNMENT GENERATES THIS BACKWARDS PATH:: \n");
 	tw.extendForwardAlignmentPath(alignmentHopsize, &tw.tmpBackwardsPath, startFrameX, startFrameY);
 	
@@ -1804,6 +1864,34 @@ void OnlineWarpHolder::printAlignmentMatrix(const DoubleMatrix& alignmentMatrix)
 	printf("...............\n");
 	
 }
+
+
+void OnlineWarpHolder::printAlignmentMatrix(const DoubleMatrix& alignmentMatrix, int sizeToPrint){
+	
+	int size = alignmentMatrix.size();
+	printf("\n _ _ _ _\n");
+	printf("align size is %i \n", size);
+	
+	int i,j;
+	DoubleVector d;
+	int rowSize = min(sizeToPrint, (int)alignmentMatrix.size());
+	d = alignmentMatrix[0];//choose initial size
+	
+	for (int j = 0;j < min(rowSize, (int)d.size());j++){
+		printf("row %i : ", j);
+		
+		for (i = 0;i < rowSize;i++){
+			d = alignmentMatrix[i];
+			
+			//	printf("row %i , col %i, val : %f \n", i, j, alignmentMeasureMatrix[i][j] );
+			printf("%f , ", alignmentMatrix[i][j] );
+		}
+		printf("\n");
+	}
+	printf("...............\n");
+	
+}
+
 
 
 void OnlineWarpHolder::printScoreForRow(int row, int max){
