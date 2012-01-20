@@ -162,7 +162,7 @@ void OnlineWarpHolder::calculateSimilarityAndAlignment(){
 	printf("CHROMA SIZE HERE IS %i \n", (int) tw.chromaSimilarityMatrix.size());
 	printf(" by %i\n",  (int) tw.chromaSimilarityMatrix[0].size());
 //	tw.initialiseVariables(); //zaps everything - now called before the fn
-	if (1 == 1){
+	if (1 == 2){
 		//redo chroma sim - the offline way
 	tw.chromaSimilarityMatrix.clear();
 	tw.calculateChromaSimilarityMatrix(&tw.chromaMatrix,  &tw.secondMatrix, &tw.chromaSimilarityMatrix);
@@ -327,26 +327,20 @@ void OnlineWarpHolder::computeAlignmentForSecondBlock(const int& startFrameY){
 	tw.calculatePartJointSimilarityMatrix(&tw.firstEnergyVector, &tw.secondEnergyVector, &tw.chromaSimilarityMatrix, &tw.tmpSimilarityMatrix, 
 										  startFrameX, startFrameY, startFrameX+3*alignmentFramesize, startFrameY + alignmentFramesize);
 	
-	printf("\nTMP SIM MATRIX\n");
-	printAlignmentMatrix(tw.tmpSimilarityMatrix, 80);
-	
+	//printf("\nTMP SIM MATRIX\n");printAlignmentMatrix(tw.tmpSimilarityMatrix, 80);-printing TMP SIM matrix
 	//	printf("TMP size of tmp sim is %i\n", (int)tw.tmpSimilarityMatrix.size());	
-	double elapsedTime = ofGetElapsedTimef() - timeBefore;
-	//	printf("PART SIM MATRIX CAL TAKES %f\n", elapsedTime);
-	
+	double elapsedTime = ofGetElapsedTimef() - timeBefore;//	printf("PART SIM MATRIX CAL TAKES %f\n", elapsedTime);
 	printf("TMP ALIGN MATRIX restricted only by %i x %i \n", (int)tw.tmpSimilarityMatrix.size()-1, (int) tw.tmpSimilarityMatrix[0].size()-1);
+	
 	tw.calculatePartAlignmentMatrix(tw.tmpSimilarityMatrix.size()-1, tw.tmpSimilarityMatrix[0].size()-1, &tw.tmpAlignmentMeasureMatrix, &tw.tmpSimilarityMatrix);
 	
-
-	
-	printAlignmentMatrix(tw.tmpAlignmentMeasureMatrix, 20);
-	
+	//printAlignmentMatrix(tw.tmpAlignmentMeasureMatrix, 20);
 	//	printf("\n CALC PART ALIGNMENT MIN PATH\n");
+	
 	tw.calculateMinimumAlignmentPathRow(&tw.tmpAlignmentMeasureMatrix, &tw.tmpBackwardsPath, true);//true is for greedy calculation
 	
 	printf("\n PART ALIGNMENT GENERATES THIS BACKWARDS PATH:: \n");
-	
-	
+
 	tw.extendForwardAlignmentPathToYanchor(alignmentHopsize, &tw.tmpBackwardsPath, startFrameX, startFrameY);
 	
 	tw.printForwardsPath();
@@ -1335,7 +1329,7 @@ void OnlineWarpHolder::extendChromaSimilarityMatrix(DoubleMatrix* myDoubleMatrix
 	if (tw.chromaMatrix.size() < 20){
 //		printChromaSimilarityMatrix(20);
 	}else{
-		printf("chr sim size %i\n", (int)tw.chromaSimilarityMatrix.size());
+		//printf("chr sim size %i\n", (int)tw.chromaSimilarityMatrix.size());
 	}
 }
 

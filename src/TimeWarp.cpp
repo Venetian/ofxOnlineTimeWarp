@@ -322,9 +322,9 @@ void TimeWarp::calculateCausalChromaSimilarityMatrix(DoubleMatrix& firstChromaMa
 			}
 		}
 	}
-			if (size > 0)
-				printf("Causial CHROMA ONLY SIM SIZE %i x %i; ", (int)simMatrix.size(), (int) simMatrix[0].size());
-		printf("First matrix SIZE %i , SECOND size %i\n", (int)firstChromaMatrix.size(), (int) secondChromaMatrix.size());	
+		//	if (size > 0)
+		//		printf("Causial CHROMA ONLY SIM SIZE %i x %i; ", (int)simMatrix.size(), (int) simMatrix[0].size());
+		//printf("First matrix SIZE %i , SECOND size %i\n", (int)firstChromaMatrix.size(), (int) secondChromaMatrix.size());	
 
 	
 }
@@ -899,7 +899,7 @@ void TimeWarp::extendForwardAlignmentPathToYanchor(int endY, IntMatrix* backPath
 	
 	while ((*backPath)[1][indexY] <= endY){
 		addNewForwardsPathFromYindex(indexY, backPath, anchorPointX, anchorPointY);
-		printf("Forwards path from index %i:: path %i : %i\n", indexY, forwardsAlignmentPath[0][forwardsIndex], forwardsAlignmentPath[1][forwardsIndex]);
+	//	printf("Forwards path from index %i:: path %i : %i\n", indexY, forwardsAlignmentPath[0][forwardsIndex], forwardsAlignmentPath[1][forwardsIndex]);
 		indexY--;
 		forwardsIndex++;	   
 	}
@@ -911,7 +911,7 @@ void TimeWarp::addNewForwardsPathFromYindex(const int& indexY, IntMatrix* backPa
 	if (indexY < (*backPath)[1].size()){
 		forwardsAlignmentPath[0].push_back((int)(*backPath)[0][indexY]+ anchorPointX);
 		forwardsAlignmentPath[1].push_back((int)(*backPath)[1][indexY] + anchorPointY);
-		printf("popping back backpath %i : %i,%i\n", indexY, (int)(*backPath)[0][indexY]+ anchorPointX, (int)(*backPath)[1][indexY]+ anchorPointY);
+	//	printf("popping back backpath %i : %i,%i\n", indexY, (int)(*backPath)[0][indexY]+ anchorPointX, (int)(*backPath)[1][indexY]+ anchorPointY);
 	}
 }
 
