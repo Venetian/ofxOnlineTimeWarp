@@ -123,7 +123,7 @@ public:
 	void calculateMinimumAlignmentPathRow(DoubleMatrix* alignmentMatrix, IntMatrix* backPath, bool pickMinimumFlag);
 	
 	bool findPreviousMinimumInBackwardsPath(DoubleMatrix* alignmentMatrix, IntMatrix* backPath);
-	bool testForNewAlignmentMinimum(double *previousMinimum, int i, int j, DoubleMatrix* alignmentMatrix);	
+	bool testForNewAlignmentMinimum(double *previousMinimum, const int& i, const int& j, DoubleMatrix* alignmentMatrix);	
 	
 	int findMinimumOfVector(DoubleVector *d);
 		
@@ -147,8 +147,8 @@ public:
 	void calculatePartMinimumAlignmentPath(int startX, int startY, int endX, int endY, DoubleMatrix alignmentMatrix);
 //	bool findPreviousMinimumInPartBackwardsPath(DoubleMatrix* alignmentMatrix);
 	double getRestrictedMinimum(int i, int j, float newValue, int minX, int minY);
-	bool extendRestrictedAlignmentUp(int endIndexY, DoubleMatrix *alignmentMatrix, DoubleMatrix* simMatrix);
-	bool extendRestrictedAlignmentAlong(int endIndexX, DoubleMatrix* alignmentMatrix, DoubleMatrix* simMatrix);
+	bool extendRestrictedAlignmentUp(const int& endIndexY, DoubleMatrix *alignmentMatrix, DoubleMatrix* simMatrix);
+	bool extendRestrictedAlignmentAlong(const int& endIndexX, DoubleMatrix* alignmentMatrix, DoubleMatrix* simMatrix);
 	
 	
 	void printBackwardsPath(int startIndex, int endIndex, const IntMatrix* backPath);

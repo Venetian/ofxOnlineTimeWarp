@@ -597,7 +597,7 @@ void TimeWarp::calculatePartAlignmentMatrix(int endIndexX, int endIndexY, Double
 
 
 
-bool TimeWarp::extendRestrictedAlignmentUp(int endIndexY, DoubleMatrix *alignmentMatrix, DoubleMatrix* simMatrix){
+bool TimeWarp::extendRestrictedAlignmentUp(const int& endIndexY, DoubleMatrix *alignmentMatrix, DoubleMatrix* simMatrix){
 	//adds one more value to all the columns after startX
 	
 	DoubleVector d;
@@ -620,7 +620,7 @@ bool TimeWarp::extendRestrictedAlignmentUp(int endIndexY, DoubleMatrix *alignmen
 }
 
 
-bool TimeWarp::extendRestrictedAlignmentAlong(int endIndexX, DoubleMatrix* alignmentMatrix, DoubleMatrix* simMatrix){
+bool TimeWarp::extendRestrictedAlignmentAlong(const int& endIndexX, DoubleMatrix* alignmentMatrix, DoubleMatrix* simMatrix){
 	DoubleVector d;
 	//firstMatrix.size()
 	int widthSize = (*alignmentMatrix).size();
@@ -776,13 +776,13 @@ bool TimeWarp::findPreviousMinimumInBackwardsPath(DoubleMatrix* alignmentMatrix,
 			finishedAligning = false;
 			
 		}
-		printf("(%i,%i) = %f, ", i-1, j, (*alignmentMatrix)[i-1][j]);
-		if (j > 0)
-		printf("(%i,%i) = %f, ", i-1, j-1, (*alignmentMatrix)[i-1][j-1]);
+	//	printf("(%i,%i) = %f, ", i-1, j, (*alignmentMatrix)[i-1][j]);
+	//	if (j > 0)
+	//	printf("(%i,%i) = %f, ", i-1, j-1, (*alignmentMatrix)[i-1][j-1]);
 	}
 	
-	if (j > 0)
-		printf("(%i,%i) = %f, ", i, j-1, (*alignmentMatrix)[i][j-1]);
+	//if (j > 0)
+	//	printf("(%i,%i) = %f, ", i, j-1, (*alignmentMatrix)[i][j-1]);
 	
 	if (j > 0 && testForNewAlignmentMinimum(ptr, i, j-1, alignmentMatrix)){
 		chromaPosition = i;
@@ -794,9 +794,9 @@ bool TimeWarp::findPreviousMinimumInBackwardsPath(DoubleMatrix* alignmentMatrix,
 	if (!finishedAligning){
 		(*backPath)[0].push_back(chromaPosition);
 		(*backPath)[1].push_back(secondPosition);
-		printf("PUSHING BACK %i and %i IN BACK PATH MINIMUM %f, i %i, j %i\n", chromaPosition, secondPosition, newMinimum, i, j);
+//		printf("PUSHING BACK %i and %i IN BACK PATH MINIMUM %f, i %i, j %i\n", chromaPosition, secondPosition, newMinimum, i, j);
 	}else{
-		printf("finished at minimum %f i %i j %i\n", newMinimum, i, j);
+//		printf("finished at minimum %f i %i j %i\n", newMinimum, i, j);
 	}
 	
 	return finishedAligning;
@@ -805,7 +805,7 @@ bool TimeWarp::findPreviousMinimumInBackwardsPath(DoubleMatrix* alignmentMatrix,
 
 
 
-bool TimeWarp::testForNewAlignmentMinimum(double *previousMinimum, int i, int j, DoubleMatrix* alignmentMatrix){
+bool TimeWarp::testForNewAlignmentMinimum(double *previousMinimum, const int& i, const int& j, DoubleMatrix* alignmentMatrix){
 	bool newMinimumFound = false;
 	
 	if ((*alignmentMatrix)[i][j] <= *previousMinimum){
