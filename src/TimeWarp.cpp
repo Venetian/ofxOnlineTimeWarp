@@ -695,6 +695,7 @@ void TimeWarp::calculateMinimumAlignmentPathRow(DoubleMatrix* alignmentMatrix, I
 	
 	printf("ROW_final index of backwards path is %i and i is %i \n", (int) (*backPath)[0].size()-1, indexOfBackwardsPath);
 	printBackwardsPath(0, (*backPath)[0].size(), backPath);
+	
 	if (backwardsAlignmentPath.size() > 0)
 	backwardsAlignmentIndex = backwardsAlignmentPath[0].size()-1;//remember that this goes backwards!
 	

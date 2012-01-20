@@ -1334,11 +1334,12 @@ void OnlineWarpHolder::iterateThroughAudioMatrix(DoubleMatrix* myDoubleMatrix, D
 	
 	if (sequentialAlignment){
 		printf("END part CAUSAL ALIGNMENT\n");
-	updateCausalAlignment();//do end part
 		
+		updateCausalAlignment();//do end part
+		setConversionRatio();
 	//backwardsAlignmentIndex = tw.backwardsAlignmentPath[0].size()-1;
 	//printf("index size is %i\n", backwardsAlignmentIndex);
-	//setConversionRatio();
+	
 	}
 	
 	printMatrixData(myDoubleMatrix, energyVector);
