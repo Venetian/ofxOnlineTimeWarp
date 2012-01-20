@@ -61,7 +61,7 @@ void testApp::setup(){
 	
 	
 	bufferCounter = 0;
-	ofSetFrameRate(40);
+	ofSetFrameRate(20);
 	
 	//loading audio file for click sound
 	const char	*clickfilename = "cow2.wav";
@@ -232,6 +232,10 @@ void testApp::keyPressed  (int key){
 	if( key == 's' ){
 		inputSoundStream.start();
 		setupFinished = true;
+	}
+	
+	if (key == 'o' || key == 'p') {
+		causalAnalysisStarted = false;
 	}
 	
 	

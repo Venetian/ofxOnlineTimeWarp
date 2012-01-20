@@ -682,7 +682,7 @@ void TimeWarp::calculateMinimumAlignmentPathRow(DoubleMatrix* alignmentMatrix, I
 //	printf("by %i ", (int)(*alignmentMatrix).size()-1);
 	(*backPath).push_back(v);
 
-	printf("\nROW: backwards path initialised to %i : %i \n", (*backPath)[0][0], (*backPath)[1][0]);
+//	printf("\nROW: backwards path initialised to %i : %i \n", (*backPath)[0][0], (*backPath)[1][0]);
 	
 	
 	int indexOfBackwardsPath = 0;
@@ -695,9 +695,10 @@ void TimeWarp::calculateMinimumAlignmentPathRow(DoubleMatrix* alignmentMatrix, I
 		
 		indexOfBackwardsPath++;
 	}
-	int tmpSize = (int) (*backPath)[0].size()-1;
-	printf("ROW_final index of backwards path is %i \n", (int) (*backPath)[0].size()-1);
-	printf("ROW PATHends[%i] and i is %i , %i \n", tmpSize, (*backPath)[0][tmpSize], (*backPath)[1][tmpSize]);
+
+//	int tmpSize = (int) (*backPath)[0].size()-1;
+//	printf("ROW_final index of backwards path is %i \n", (int) (*backPath)[0].size()-1);
+//	printf("ROW PATHends[%i] and i is %i , %i \n", tmpSize, (*backPath)[0][tmpSize], (*backPath)[1][tmpSize]);
 	
 //	printBackwardsPath(0, (*backPath)[0].size(), backPath);
 	

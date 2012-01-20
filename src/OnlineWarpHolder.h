@@ -251,6 +251,7 @@ public:
 	int anchorStartFrameX;
 	int anchorStartFrameY;
 	bool sequentialAlignment;
+	float sequentialBlockRatio;
 	
 	ofxSoundFileLoader* soundFileLoader;
 };

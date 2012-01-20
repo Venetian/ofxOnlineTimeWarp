@@ -57,6 +57,7 @@ OnlineWarpHolder::OnlineWarpHolder(){
 
 void OnlineWarpHolder::setup(){
 	sequentialAlignment = true;
+	sequentialBlockRatio = 3;
 	
 	soundFileLoader = new  ofxSoundFileLoader();
 	
@@ -346,7 +347,7 @@ void OnlineWarpHolder::computeAlignmentForSecondBlock(const int& startFrameY){
 	double timeBefore = ofGetElapsedTimef();
 	
 	tw.calculatePartJointSimilarityMatrix(&tw.firstEnergyVector, &tw.secondEnergyVector, &tw.chromaSimilarityMatrix, &tw.tmpSimilarityMatrix, 
-										  startFrameX, startFrameY, startFrameX+3*alignmentFramesize, startFrameY + alignmentFramesize);
+										  startFrameX, startFrameY, startFrameX + sequentialBlockRatio*alignmentFramesize, startFrameY + alignmentFramesize);
 	
 	//printf("\nTMP SIM MATRIX\n");printAlignmentMatrix(tw.tmpSimilarityMatrix, 80);-printing TMP SIM matrix
 	//	printf("TMP size of tmp sim is %i\n", (int)tw.tmpSimilarityMatrix.size());	
@@ -804,28 +805,28 @@ void OnlineWarpHolder::drawChromaSimilarityMatrix(){
 	indexOfAlignmentPathTested = &lengthOfPath;
 	
 	int xcoord, ycoord;
-	for (int x = 0;x < screenWidth;x++)
-	{
-		for (int y =0;y < screenHeight;y++){
+	
+	ofFill();
+	
+	float tmpChromoFactor = chromoLength * conversionFactor/ screenHeight;
+	
+	int resolution = 4; 
+	for (int x = 0;x < screenWidth;x+=resolution){
+		
+		xcoord = (x / screenWidth) * scrollWidth;//i.e.  chromoLength * conversionFactor;
+		xcoord += startingXframe;
+		int xChromaCoord = xcoord / conversionFactor;
+		
+		for (int y =0;y < screenHeight;y+=resolution){
 			
-			xcoord = (x / screenWidth) * scrollWidth;//i.e.  chromoLength * conversionFactor;
-			xcoord += startingXframe;
-			
-			int xChromaCoord = xcoord / conversionFactor;
-			
-			ycoord = y * chromoLength * conversionFactor/ screenHeight;
+			ycoord = y * tmpChromoFactor;
 			ycoord += startingYframe;
 			
 			int yChromaCoord = ycoord / conversionFactor; 
 			
 			int colour = 0;//0x006644;
 			
-			
-			/*	if (xcoord < tw.similarityMatrix.size() && ycoord < tw.similarityMatrix[0].size()){//
-			 //nb not optimised
-			 colour = tw.similarityMatrix[xcoord][ycoord]*255;
-			 }
-			 */	
+	
 			if (xChromaCoord < tw.chromaSimilarityMatrix.size() && yChromaCoord < tw.chromaSimilarityMatrix[0].size()){
 				colour = tw.chromaSimilarityMatrix[xChromaCoord][yChromaCoord]*255;
 			}
@@ -833,7 +834,7 @@ void OnlineWarpHolder::drawChromaSimilarityMatrix(){
 			
 			ofSetColor(colour,0,0);
 			
-			ofRect(x,y,1,1);
+			ofRect(x,y,resolution,resolution);
 			
 		}
 	}
@@ -1107,7 +1108,7 @@ void OnlineWarpHolder::drawForwardsAlignmentPathOnChromaSimilarity(const int& st
 			index --;
 		}
 		
-		while (tw.forwardsAlignmentPath[0][index] < startingXFrame){
+		while (index < tw.forwardsAlignmentPath[0].size() && tw.forwardsAlignmentPath[0][index] < startingXFrame){
 			//get to NOW
 			index ++;
 		}
@@ -1703,6 +1704,8 @@ void OnlineWarpHolder::loadFirstAudio(string soundFileName){
 	printf("Load FIRST file %s\n", soundFileName.c_str());
 
 	tw.initialiseVariables();
+	tw.clearVectors();
+	
 	resetMatrix(&tw.chromaMatrix, &tw.firstEnergyVector);//not strictly needed as in next fn
 
 //	resetForwardsPath();//sets anchor points and wipes previous forwards path
