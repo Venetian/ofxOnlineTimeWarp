@@ -357,7 +357,7 @@ void OnlineWarpHolder::computeAlignmentForSecondBlock(const int& startFrameY){
  
 	tw.extendForwardAlignmentPathToYanchor(alignmentHopsize, &tw.tmpBackwardsPath, startFrameX, startFrameY);
 	
-//	tw.printForwardsPath(); //MAIN PRINTING OF FORWARDS PATH GENERATED
+	tw.printForwardsPath(); //MAIN PRINTING OF FORWARDS PATH GENERATED
 	
 	
 }
