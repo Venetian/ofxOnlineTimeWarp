@@ -570,7 +570,7 @@ void TimeWarp::calculatePartJointSimilarityMatrix(DoubleVector* firstEnergyVecto
 
 
 
-void TimeWarp::calculatePartAlignmentMatrix(int endIndexX, int endIndexY, DoubleMatrix* alignmentMatrix, DoubleMatrix* simMatrix){
+void TimeWarp::calculatePartAlignmentMatrix(const int& endIndexX, const int& endIndexY, DoubleMatrix* alignmentMatrix, DoubleMatrix* simMatrix){
 //	printf("starting PART Alignment calculation : sim matrix size %i %i endX %i Y %i\n", (int)(*simMatrix).size(), (int)(*simMatrix)[0].size(), endIndexX, endIndexY);
 	//initialise alignment
 	alignmentMatrix->clear();
@@ -594,6 +594,8 @@ void TimeWarp::calculatePartAlignmentMatrix(int endIndexX, int endIndexY, Double
 	}
 	
 //	printf("PART Alignment matrix calculated, size %i by %i\n", (int) (*alignmentMatrix).size() , (int) (*alignmentMatrix)[0].size());
+//	printf("PART Alignment ends at x %i y %i\n", (int) (*alignmentMatrix)[0][(*alignmentMatrix)[0].size()-1], (int)(*alignmentMatrix)[0][(*alignmentMatrix)[1].size()-1]);
+
 }
 
 
@@ -613,6 +615,7 @@ bool TimeWarp::extendRestrictedAlignmentUp(const int& endIndexY, DoubleMatrix *a
 		//	printf("restruicted up  %i, %i\n", i, heightSize);
 			double value = getDistanceFromMatrix(i, heightSize, simMatrix);
 			value += getMinimumFromMatrix(i, heightSize, value, alignmentMatrix);//min values 0	
+			
 			(*alignmentMatrix)[i].push_back(value);//
 		}
 	}
@@ -669,35 +672,37 @@ void TimeWarp::calculateMinimumAlignmentPathRow(DoubleMatrix* alignmentMatrix, I
 	int endIndex = (*alignmentMatrix).size()-1;
 	if (pickMinimumFlag){
 		endIndex = getMinimumIndexOfRowFromMatrix((int)((*alignmentMatrix)[0].size()-1), *alignmentMatrix);
-		printf("minimum of row is %i\n", endIndex);
+//		printf("minimum of row is %i\n", endIndex);
 	}
 	v.push_back(endIndex);
-	printf("ROW PUSH end index %i ", endIndex);
+//	printf("ROW PUSH end index %i ", endIndex);
 	(*backPath).push_back(v);
 	v.clear();
 	v.push_back((*alignmentMatrix)[0].size()-1);
-	printf("by %i ", (int)(*alignmentMatrix).size()-1);
+//	printf("by %i ", (int)(*alignmentMatrix).size()-1);
 	(*backPath).push_back(v);
 
-	printf("ROW: backwards path initialised to %i : %i \n", (*backPath)[0][0], (*backPath)[1][0]);
+	printf("\nROW: backwards path initialised to %i : %i \n", (*backPath)[0][0], (*backPath)[1][0]);
 	
 	
 	int indexOfBackwardsPath = 0;
 	while (!findPreviousMinimumInBackwardsPath(alignmentMatrix, backPath))	{
 		
-	//	if (indexOfBackwardsPath < backwardsAlignmentPath[0].size()){
-	//		printf("backwards path index %i:  path: %i : %i \n", 
-	//			   indexOfBackwardsPath, backwardsAlignmentPath[0][indexOfBackwardsPath], backwardsAlignmentPath[1][indexOfBackwardsPath]);
+	//	if (indexOfBackwardsPath < (*backPath)[0].size()){
+	//		printf("(*backPath) [ %i]:  path: %i : %i \n", 
+	//			   indexOfBackwardsPath, (*backPath)[0][indexOfBackwardsPath], (*backPath)[1][indexOfBackwardsPath]);
 	//	}
 		
 		indexOfBackwardsPath++;
 	}
+	int tmpSize = (int) (*backPath)[0].size()-1;
+	printf("ROW_final index of backwards path is %i \n", (int) (*backPath)[0].size()-1);
+	printf("ROW PATHends[%i] and i is %i , %i \n", tmpSize, (*backPath)[0][tmpSize], (*backPath)[1][tmpSize]);
 	
-	printf("ROW_final index of backwards path is %i and i is %i \n", (int) (*backPath)[0].size()-1, indexOfBackwardsPath);
-	printBackwardsPath(0, (*backPath)[0].size(), backPath);
+//	printBackwardsPath(0, (*backPath)[0].size(), backPath);
 	
-	if (backwardsAlignmentPath.size() > 0)
-	backwardsAlignmentIndex = backwardsAlignmentPath[0].size()-1;//remember that this goes backwards!
+//	if (backwardsAlignmentPath.size() > 0)
+//	backwardsAlignmentIndex = backwardsAlignmentPath[0].size()-1;//remember that this goes backwards!
 	
 }
 
@@ -756,14 +761,14 @@ bool TimeWarp::findPreviousMinimumInBackwardsPath(DoubleMatrix* alignmentMatrix,
 	int i,j;
 	i = (*backPath)[0][(*backPath)[0].size()-1];
 	j  = (*backPath)[1][(*backPath)[1].size()-1];
-	///printf("FIND PREVIOUS MINIMUM %i %i \n", i, j);
+	//printf("FIND PREVIOUS MINIMUM %i %i \n", i, j);
 	
 	double newMinimum;
 	double *ptr;
 	ptr = &newMinimum;
 	newMinimum = (*alignmentMatrix)[i][j];
 	DoubleVector d;
-	
+	//printf("existing minimum %f :", newMinimum);
 	
 	bool finishedAligning = true;
 	
@@ -780,15 +785,14 @@ bool TimeWarp::findPreviousMinimumInBackwardsPath(DoubleMatrix* alignmentMatrix,
 			chromaPosition = i-1;
 			secondPosition = j-1;
 			finishedAligning = false;
-			
 		}
-	//	printf("(%i,%i) = %f, ", i-1, j, (*alignmentMatrix)[i-1][j]);
-	//	if (j > 0)
-	//	printf("(%i,%i) = %f, ", i-1, j-1, (*alignmentMatrix)[i-1][j-1]);
+//			printf("(%i,%i) = %f, ", i-1, j, (*alignmentMatrix)[i-1][j]);
+//			if (j > 0)
+//			printf("(%i,%i) = %f, ", i-1, j-1, (*alignmentMatrix)[i-1][j-1]);
 	}
 	
-	//if (j > 0)
-	//	printf("(%i,%i) = %f, ", i, j-1, (*alignmentMatrix)[i][j-1]);
+//		if (j > 0)
+//		printf("(%i,%i) = %f, ", i, j-1, (*alignmentMatrix)[i][j-1]);
 	
 	if (j > 0 && testForNewAlignmentMinimum(ptr, i, j-1, alignmentMatrix)){
 		chromaPosition = i;
@@ -797,6 +801,8 @@ bool TimeWarp::findPreviousMinimumInBackwardsPath(DoubleMatrix* alignmentMatrix,
 		
 	}
 	
+//	printf(" and new minimum %f\n", newMinimum);
+	
 	if (!finishedAligning){
 		(*backPath)[0].push_back(chromaPosition);
 		(*backPath)[1].push_back(secondPosition);
@@ -804,6 +810,8 @@ bool TimeWarp::findPreviousMinimumInBackwardsPath(DoubleMatrix* alignmentMatrix,
 	}else{
 		//printf("finished at minimum %f i %i j %i\n", newMinimum, i, j);
 	}
+	
+	
 	
 	return finishedAligning;
 	
@@ -884,7 +892,7 @@ void TimeWarp::extendForwardAlignmentPathToYanchor(int endY, IntMatrix* backPath
 	int indexY = (*backPath)[1].size() - 1;
 	
 	if (forwardsIndex == 0){
-		printf("Y_AnchorExtend_initialise forwards path.(%i).\n", indexY);
+	//	printf("Y_AnchorExtend_initialise forwards path.(%i).\n", indexY);
 		IntVector v;
 		//printf("aim to start with %i and %i, anchors %i,%i\n", (*backPath)[0][indexX], (*backPath)[1][indexX], anchorPointX, anchorPointY);
 		v.push_back((*backPath)[0][indexY]);//chromaMatrix.size()-1
@@ -898,13 +906,13 @@ void TimeWarp::extendForwardAlignmentPathToYanchor(int endY, IntMatrix* backPath
 	}
 	else{
 		//forwards path has been started and we need anchor point
-		printf("backpath index %i x %i y %i\n", indexY, (*backPath)[0][indexY], (*backPath)[1][indexY]);
+	//	printf("backpath index %i x %i y %i\n", indexY, (*backPath)[0][indexY], (*backPath)[1][indexY]);
 		
 	}
 	
-	printf("about to pop %i vs %i\n", (int) (*backPath)[1][indexY],  endY);
-	printBackwardsPath(0, (*backPath)[1].size()-1, backPath);
-	printf("back path to pop above!");
+//	printf("about to pop %i vs %i\n", (int) (*backPath)[1][indexY],  endY);
+//	printBackwardsPath(0, (*backPath)[1].size()-1, backPath);
+//	printf("back path to pop above!");
 	
 	while ((*backPath)[1][indexY] <= endY){	
 		addNewForwardsPathFromYindex(indexY, backPath, anchorPointX, anchorPointY);
@@ -912,7 +920,7 @@ void TimeWarp::extendForwardAlignmentPathToYanchor(int endY, IntMatrix* backPath
 		indexY--;
 		forwardsIndex++;	   
 	}
-	printf("\n\nEND POPPING %i\n\n", endY);
+//	printf("\n\nEND POPPING %i\n\n", endY);
 	
 }
 
@@ -921,7 +929,7 @@ void TimeWarp::addNewForwardsPathFromYindex(const int& indexY, IntMatrix* backPa
 	if (indexY < (*backPath)[1].size()){
 		forwardsAlignmentPath[0].push_back((int)(*backPath)[0][indexY]+ anchorPointX);
 		forwardsAlignmentPath[1].push_back((int)(*backPath)[1][indexY] + anchorPointY);
-		printf("popping back backpath FORWARDS %i : %i,%i\n", indexY, (int)(*backPath)[0][indexY]+ anchorPointX, (int)(*backPath)[1][indexY]+ anchorPointY);
+//		printf("popping back backpath FORWARDS %i : %i,%i\n", indexY, (int)(*backPath)[0][indexY]+ anchorPointX, (int)(*backPath)[1][indexY]+ anchorPointY);
 	}
 }
 
@@ -956,7 +964,7 @@ void TimeWarp::copyForwardsPathToBackwardsPath(){
 		backwardsAlignmentPath[0].push_back(forwardsAlignmentPath[0][index]);
 		backwardsAlignmentPath[1].push_back(forwardsAlignmentPath[1][index]);
 	}
-	printf("bxckweards path size ids %i\n", (int) backwardsAlignmentPath[0].size());
+	//printf("bxckweards path size ids %i\n", (int) backwardsAlignmentPath[0].size());
 }
 
 /*
@@ -1063,6 +1071,10 @@ double TimeWarp::getDistanceFromMatrix(int i, int j, DoubleMatrix* simMatrix){
 	
 	if (i < (*simMatrix).size() && j < (*simMatrix)[i].size()){
 	//	printf("distance returning %i% i : %f\n", i, j, (1 - (*simMatrix)[i][j]) );
+	//	double test = (1 - (*simMatrix)[i][j]);
+	//	assert (test >= 0);
+	//	assert (test <= 1);
+		
 		return (1 - (*simMatrix)[i][j]);
 	}
 	else{
@@ -1079,7 +1091,6 @@ double TimeWarp::getMinimumFromMatrix(int i, int j, float newValue, DoubleMatrix
 		if (j > 0){
 			//minimumValue = min(minimumValue, (*alignMatrix)[i-1][j-1] + newValue ) ;//penalises diagonal by 2
 			minimumValue = min(minimumValue, (*alignMatrix)[i-1][j-1]  ) ;//favours diagonal
-			minimumValue = min(minimumValue, (*alignMatrix)[i][j-1]);
 		}
 	}
 	else{//i.e. i == 0 

@@ -138,7 +138,7 @@ public:
 	void addNewForwardsPathFromYindex(const int& indexY, IntMatrix* backPath, const int& anchorPointX, const int& anchorPointY);
 //PART ALIGNMENT FUNCTIONS
 	void calculatePartSimilarityMatrix(DoubleMatrix* firstChromaMatrix, DoubleMatrix* secondChromaMatrix, DoubleMatrix* simMatrix, int startX, int startY, int endX);
-	void calculatePartAlignmentMatrix(int endIndexX, int endIndexY, DoubleMatrix* alignmentMatrix, DoubleMatrix* simMatrix);
+	void calculatePartAlignmentMatrix(const int& endIndexX, const int& endIndexY, DoubleMatrix* alignmentMatrix, DoubleMatrix* simMatrix);
 
 	
 	double getDistanceFromMatrix(int i, int j, DoubleMatrix* simMatrix);

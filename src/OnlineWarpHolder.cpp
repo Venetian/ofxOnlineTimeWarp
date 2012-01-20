@@ -340,7 +340,7 @@ void OnlineWarpHolder::computeAlignmentForSecondBlock(const int& startFrameY){
 	
 	if (tw.anchorPoints.size() > 0){
 		startFrameX = tw.anchorPoints[tw.anchorPoints.size()-1][0];
-		printf("2nd BLOCK COMPUTE - starting X is %i (startY %i)\n", startFrameX, startFrameY);
+		//printf("2nd BLOCK COMPUTE - starting X is %i (startY %i)\n", startFrameX, startFrameY);
 	}
 	
 	double timeBefore = ofGetElapsedTimef();
@@ -360,7 +360,7 @@ void OnlineWarpHolder::computeAlignmentForSecondBlock(const int& startFrameY){
 	
 	tw.calculateMinimumAlignmentPathRow(&tw.tmpAlignmentMeasureMatrix, &tw.tmpBackwardsPath, true);//true is for greedy calculation
 	
-	printf("size of TMP BACK PATH %i\n", (int) tw.tmpBackwardsPath[0].size());
+//	printf("size of TMP BACK PATH %i\n", (int) tw.tmpBackwardsPath[0].size());
 //	printf("\n PART ALIGNMENT GENERATES THIS BACKWARDS PATH:: \n");
 //	tw.printForwardsPath(); //MAIN PRINTING OF FORWARDS PATH GENERATED
 	
@@ -1334,7 +1334,6 @@ void OnlineWarpHolder::iterateThroughAudioMatrix(DoubleMatrix* myDoubleMatrix, D
 	
 	if (sequentialAlignment){
 		printf("END part CAUSAL ALIGNMENT\n");
-		
 		updateCausalAlignment();//do end part
 		setConversionRatio();
 	//backwardsAlignmentIndex = tw.backwardsAlignmentPath[0].size()-1;
@@ -1354,7 +1353,7 @@ void OnlineWarpHolder::doSequentialAnalysis(float* frame, DoubleMatrix* myDouble
 		extendChromaSimilarityMatrix(myDoubleMatrix, energyVector);
 		if (sequentialAlignment && checkAlignmentWindow()){
 			updateCausalAlignment();
-			printf("updating sequential %i\n", (int)tw.backwardsAlignmentPath[0].size());
+		//	printf("updating sequential %i\n", (int)tw.backwardsAlignmentPath[0].size());
 		}
 	}
 }
@@ -1368,7 +1367,7 @@ bool OnlineWarpHolder::checkAlignmentWindow(){
 }
 
 void OnlineWarpHolder::updateCausalAlignment(){
-	printf("SEQUENTIAL STARTING ANCHORS %i,%i\n", anchorStartFrameX, anchorStartFrameY);
+	//printf("SEQUENTIAL STARTING ANCHORS %i,%i\n", anchorStartFrameX, anchorStartFrameY);
 	computeAlignmentForSecondBlock(anchorStartFrameY);
 	
 	anchorStartFrameX = tw.forwardsAlignmentPath[0][(tw.forwardsAlignmentPath[0].size()-1)];
