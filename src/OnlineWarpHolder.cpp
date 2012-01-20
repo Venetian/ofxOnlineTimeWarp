@@ -188,7 +188,7 @@ void OnlineWarpHolder::calculateSimilarityAndAlignment(){
 	printf("index size is %i\n", backwardsAlignmentIndex);
 	
 	
-	setConversionRatio();
+//	setConversionRatio();
 	
 	printVariousMatrixInfo();
 }
@@ -256,6 +256,13 @@ void OnlineWarpHolder::initialiseVariables(){
 
 	
 }
+
+void OnlineWarpHolder::resetSequentialAnalysis(){
+	resetMatrix(&tw.secondMatrix, &tw.secondEnergyVector);
+	tw.chromaSimilarityMatrix.clear();
+	resetForwardsPath();
+}
+
 
 void OnlineWarpHolder::resetForwardsPath(){
 	tw.forwardsAlignmentPath.clear();
@@ -344,7 +351,7 @@ void OnlineWarpHolder::computeAlignmentForSecondBlock(const int& startFrameY){
 	//printf("\nTMP SIM MATRIX\n");printAlignmentMatrix(tw.tmpSimilarityMatrix, 80);-printing TMP SIM matrix
 	//	printf("TMP size of tmp sim is %i\n", (int)tw.tmpSimilarityMatrix.size());	
 	double elapsedTime = ofGetElapsedTimef() - timeBefore;//	printf("PART SIM MATRIX CAL TAKES %f\n", elapsedTime);
-	printf("TMP ALIGN MATRIX restricted only by %i x %i \n", (int)tw.tmpSimilarityMatrix.size()-1, (int) tw.tmpSimilarityMatrix[0].size()-1);
+//	printf("TMP ALIGN MATRIX restricted only by %i x %i \n", (int)tw.tmpSimilarityMatrix.size()-1, (int) tw.tmpSimilarityMatrix[0].size()-1);
 	
 	tw.calculatePartAlignmentMatrix(tw.tmpSimilarityMatrix.size()-1, tw.tmpSimilarityMatrix[0].size()-1, &tw.tmpAlignmentMeasureMatrix, &tw.tmpSimilarityMatrix);
 	
@@ -357,7 +364,7 @@ void OnlineWarpHolder::computeAlignmentForSecondBlock(const int& startFrameY){
  
 	tw.extendForwardAlignmentPathToYanchor(alignmentHopsize, &tw.tmpBackwardsPath, startFrameX, startFrameY);
 	
-	tw.printForwardsPath(); //MAIN PRINTING OF FORWARDS PATH GENERATED
+//	tw.printForwardsPath(); //MAIN PRINTING OF FORWARDS PATH GENERATED
 	
 	
 }
@@ -1320,22 +1327,15 @@ void OnlineWarpHolder::iterateThroughAudioMatrix(DoubleMatrix* myDoubleMatrix, D
 		// read FRAMESIZE samples from 'infile' and save in 'data'
 		readcount = sf_read_float(infile, frame, FRAMESIZE);
 		
-		if (processFrameToMatrix(frame, myDoubleMatrix, energyVector)){//i.e. new chromagram calculated
-			extendChromaSimilarityMatrix(myDoubleMatrix, energyVector);
-			if (sequentialAlignment && checkAlignmentWindow()){
-				updateCausalAlignment();
-			}
-		}
+		doSequentialAnalysis(frame, myDoubleMatrix, energyVector);
 		
 	}//end while readcount
 	if (sequentialAlignment){
 	updateCausalAlignment();//do end part
-	tw.copyForwardsPathToBackwardsPath();
 		
-	backwardsAlignmentIndex = tw.backwardsAlignmentPath[0].size()-1;
-	printf("index size is %i\n", backwardsAlignmentIndex);
-		
-	setConversionRatio();
+	//backwardsAlignmentIndex = tw.backwardsAlignmentPath[0].size()-1;
+	//printf("index size is %i\n", backwardsAlignmentIndex);
+	//setConversionRatio();
 		
 	}
 	
@@ -1346,8 +1346,17 @@ void OnlineWarpHolder::iterateThroughAudioMatrix(DoubleMatrix* myDoubleMatrix, D
 	
 }
 
+void OnlineWarpHolder::doSequentialAnalysis(float* frame, DoubleMatrix* myDoubleMatrix, DoubleVector* energyVector){
+	if (processFrameToMatrix(frame, myDoubleMatrix, energyVector)){//i.e. new chromagram calculated
+		extendChromaSimilarityMatrix(myDoubleMatrix, energyVector);
+		if (sequentialAlignment && checkAlignmentWindow()){
+			updateCausalAlignment();
+		}
+	}
+}
+
 bool OnlineWarpHolder::checkAlignmentWindow(){
-	printf("checking size %i vs alignment pt %i\n", (int) tw.secondEnergyVector.size(), anchorStartFrameY + alignmentFramesize);
+//	printf("checking size %i vs alignment pt %i\n", (int) tw.secondEnergyVector.size(), anchorStartFrameY + alignmentFramesize);
 	if (tw.secondEnergyVector.size() > anchorStartFrameY + alignmentFramesize)
 		return true;
 	else
@@ -1361,6 +1370,7 @@ void OnlineWarpHolder::updateCausalAlignment(){
 	printf("SEQUENTIAL ALIGNMENT ANCHORS %i,%i\n", anchorStartFrameX, anchorStartFrameY);
 	//anchorStartFrameY += alignmentHopsize;
 	tw.addAnchorPoints(anchorStartFrameX, anchorStartFrameY);
+	tw.copyForwardsPathToBackwardsPath();
 }
 
 void OnlineWarpHolder::extendChromaSimilarityMatrix(DoubleMatrix* myDoubleMatrix, DoubleVector* energyVector){
@@ -1699,6 +1709,9 @@ void OnlineWarpHolder::loadFirstAudio(string soundFileName){
 	soundFileLoader->loadLibSndFile(infilename);//LOADS IT INTO SOUNDFILE.AUDIOHOLDER.AUDIOVECTOR
 	
 	audioPlaying = false;
+	
+	setConversionRatio();
+	
 }
 
 

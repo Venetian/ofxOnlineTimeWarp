@@ -20,7 +20,7 @@ void testApp::setup(){
 	ofSetFrameRate(30);
 
 	sampleIndex = 0;
-	outputIsSameAsInput = false;
+	outputIsSameAsInput = true;
 	
 	infoString = "this shows two sound streams being used\npress 's' to unpause the audio\n'e' to pause the audio\n";
 	infoString += "'i' to switch from using input and using sine wave for output stream";
@@ -236,9 +236,10 @@ void testApp::keyPressed  (int key){
 	
 	
 	if( key == 'x' && !causalAnalysisStarted){
-		printf("Start causal analysis\n");
-		warpHolder->resetMatrix(&(warpHolder->tw.secondMatrix), &(warpHolder->tw.secondEnergyVector));
+		printf("Start LIVE causal analysis\n");
+		
 		causalAnalysisStarted = true;
+		warpHolder->resetSequentialAnalysis();
 	}
 	
 	if( key == 'e' ){
@@ -319,8 +320,7 @@ void testApp::audioInputListener(ofxAudioEventArgs &args){
 		bufferCounter++;
 		
 		if (causalAnalysisStarted){
-			//processFrameToMatrix(frame, myDoubleMatrix, energyVector);
-			warpHolder->processFrameToMatrix(&leftAudioIn[0], &(warpHolder->tw.secondMatrix), &(warpHolder->tw.secondEnergyVector));
+			warpHolder->doSequentialAnalysis(&leftAudioIn[0], &warpHolder->tw.secondMatrix, &warpHolder->tw.secondEnergyVector);
 		}
 		
 		
