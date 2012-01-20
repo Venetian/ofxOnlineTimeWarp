@@ -87,6 +87,11 @@ public:
 	void resetForwardsPath();
 	void computeAlignmentForFirstBlock(const int& startFrameX);
 	void computeAlignmentForSecondBlock(const int& startFrameY);
+	
+	bool checkAlignmentWindow();
+	void updateCausalAlignment();
+	
+	
 	int alignmentHopsize, alignmentFramesize;
 	bool drawSimilarity;
 	void drawSimilarityMatrix();
@@ -244,6 +249,7 @@ public:
 	
 	int anchorStartFrameX;
 	int anchorStartFrameY;
+	bool sequentialAlignment;
 	
 	ofxSoundFileLoader* soundFileLoader;
 };

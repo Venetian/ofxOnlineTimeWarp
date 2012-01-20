@@ -658,7 +658,7 @@ void TimeWarp::calculateMinimumAlignmentPathRow(DoubleMatrix* alignmentMatrix, I
 	
 	//	printf("Finding minimum Path %i vs sim size %i\n", (int)chromaMatrix.size(), (int)similarityMatrix.size() );
 	
-	printf("Finding minimum ROW Path of alignment matrix %i vs sim size %i\n", (int)(*alignmentMatrix).size(), (int)(*alignmentMatrix)[0].size() );	
+	//printf("Finding minimum ROW Path of alignment matrix %i vs sim size %i\n", (int)(*alignmentMatrix).size(), (int)(*alignmentMatrix)[0].size() );	
 	//	printf("compares to sim %ix%i\n", similarityMatrix.size()-1, similarityMatrix[0].size()-1);
 	IntVector v;
 	//	v.push_back(similarityMatrix.size()-1);//chromaMatrix.size()-1 - old way
@@ -667,14 +667,14 @@ void TimeWarp::calculateMinimumAlignmentPathRow(DoubleMatrix* alignmentMatrix, I
 		endIndex = getMinimumIndexOfRowFromMatrix((int)((*alignmentMatrix)[0].size()-1), *alignmentMatrix);
 	}
 	v.push_back(endIndex);
-	printf("ROW PUSH end index %i ", endIndex);
+	//printf("ROW PUSH end index %i ", endIndex);
 	(*backPath).push_back(v);
 	v.clear();
 	v.push_back((*alignmentMatrix)[0].size()-1);
-		printf("by %i ", (int)(*alignmentMatrix).size()-1);
+	//	printf("by %i ", (int)(*alignmentMatrix).size()-1);
 	(*backPath).push_back(v);
 
-	printf("ROW: backwards path initialised to %i : %i \n", (*backPath)[0][0], (*backPath)[1][0]);
+	//printf("ROW: backwards path initialised to %i : %i \n", (*backPath)[0][0], (*backPath)[1][0]);
 	
 	
 	int indexOfBackwardsPath = 0;
@@ -687,9 +687,9 @@ void TimeWarp::calculateMinimumAlignmentPathRow(DoubleMatrix* alignmentMatrix, I
 		
 		indexOfBackwardsPath++;
 	}
-		printf("ROW_final index of backwards path is %i and i is %i \n", (int) (*backPath)[0].size()-1, indexOfBackwardsPath);
 	
-	printBackwardsPath(0, (*backPath)[0].size(), backPath);
+	//printf("ROW_final index of backwards path is %i and i is %i \n", (int) (*backPath)[0].size()-1, indexOfBackwardsPath);
+	//printBackwardsPath(0, (*backPath)[0].size(), backPath);
 	
 	//	backwardsAlignmentIndex = backwardsAlignmentPath[0].size()-1;//remember that this goes backwards!
 	
