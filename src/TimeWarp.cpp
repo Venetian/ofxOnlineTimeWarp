@@ -508,6 +508,7 @@ void TimeWarp::calculatePartJointSimilarityMatrix(DoubleVector* firstEnergyVecto
 	printf("PART SIM ENERGY VEC LENGTHS %i and %i\n", (int) (*firstEnergyVector).size(), (int) (*secondEnergyVector).size());
 	
 	conversionFactor = (int) round((*firstEnergyVector).size() / (*chromaSimMatrix).size() );
+	printf("conversion fac %i", conversionFactor);
 	
 	simMatrix->clear();
 	
@@ -517,13 +518,15 @@ void TimeWarp::calculatePartJointSimilarityMatrix(DoubleVector* firstEnergyVecto
 	
 	endX = min (endX, (int)(*firstEnergyVector).size()-1);//in case out of size
 	endY = min( endY+1, (int)(*secondEnergyVector).size());
-//	endY = min( endY, (int)(*secondEnergyVector).size()-1);//added to switch 2012
+//	endY = min( endY, (int)(*secondEnergyVector).size()-1);//added to switch 
 
 	int lastChromaYvalue = 0;
 	int chromaIndexY = 0;
 	double chromaComponent = 0;
 	double 	chromaContribution = 0;
-		DoubleVector d;	
+
+	DoubleVector d;	
+	
 	for (int x = startX;x <= endX;x++){
 		d.clear();
 		
@@ -667,7 +670,7 @@ void TimeWarp::calculateMinimumAlignmentPathRow(DoubleMatrix* alignmentMatrix, I
 	printf("ROW PUSH end index %i ", endIndex);
 	(*backPath).push_back(v);
 	v.clear();
-	v.push_back((*alignmentMatrix).size()-1);
+	v.push_back((*alignmentMatrix)[0].size()-1);
 		printf("by %i ", (int)(*alignmentMatrix).size()-1);
 	(*backPath).push_back(v);
 
@@ -747,7 +750,7 @@ bool TimeWarp::findPreviousMinimumInBackwardsPath(DoubleMatrix* alignmentMatrix,
 	int i,j;
 	i = (*backPath)[0][(*backPath)[0].size()-1];
 	j  = (*backPath)[1][(*backPath)[1].size()-1];
-	printf("FIND PREVIOUS MINIMUM %i %i \n", i, j);
+	///printf("FIND PREVIOUS MINIMUM %i %i \n", i, j);
 	
 	double newMinimum;
 	double *ptr;

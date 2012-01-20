@@ -60,7 +60,7 @@ void OnlineWarpHolder::setup(){
 	soundFileLoader = new  ofxSoundFileLoader();
 	
 	alignmentHopsize = 200;
-	alignmentFramesize = 1000;
+	alignmentFramesize = 400;
 	
 	doCausalAlignment = true;
 	
@@ -154,6 +154,7 @@ void OnlineWarpHolder::calculateSimilarityAndAlignment(){
 	
 	printf("FIRST THE CAUSAL WAY\n");
 	printChromaSimilarityMatrix(20);
+	
 //	for (int i = 0;i < tw.chromaSimilarityMatrix.size();i++){
 //		printf ("SiZe of chromasim[%i] is %i\n", i, (int)tw.chromaSimilarityMatrix[i].size());
 //	}
@@ -161,7 +162,7 @@ void OnlineWarpHolder::calculateSimilarityAndAlignment(){
 	printf("CHROMA SIZE HERE IS %i \n", (int) tw.chromaSimilarityMatrix.size());
 	printf(" by %i\n",  (int) tw.chromaSimilarityMatrix[0].size());
 //	tw.initialiseVariables(); //zaps everything - now called before the fn
-	if (1 == 2){
+	if (1 == 1){
 		//redo chroma sim - the offline way
 	tw.chromaSimilarityMatrix.clear();
 	tw.calculateChromaSimilarityMatrix(&tw.chromaMatrix,  &tw.secondMatrix, &tw.chromaSimilarityMatrix);
@@ -175,8 +176,7 @@ void OnlineWarpHolder::calculateSimilarityAndAlignment(){
 	
 	if (doCausalAlignment)
 		calculateCausalAlignment();
-	else{
-		//tw.calculateAlignmentMatrix(tw.firstChromaEnergyMatrix, tw.secondChromaEnergyMatrix, &tw.alignmentMeasureMatrix);	
+	else{	
 		tw.calculateAlignmentMatrix(tw.chromaMatrix, tw.secondMatrix, &tw.alignmentMeasureMatrix);	
 		tw.calculateMinimumAlignmentPathColumn(&tw.alignmentMeasureMatrix, &tw.backwardsAlignmentPath, false);
 	}
@@ -281,7 +281,7 @@ void OnlineWarpHolder::calculateFirstForwardsAlignment(){
 void OnlineWarpHolder::calculateSecondForwardsAlignment(){
 	
 	//resetForwardsPath() - moved for reset on loading second file - online needs to happen when we start aligning
-	//int anchorStartFrameY = 0;
+	//anchorStartFrameX = 0;
 	for (anchorStartFrameY = 0;anchorStartFrameY < tw.secondEnergyVector.size(); anchorStartFrameY += alignmentHopsize){
 		
 		tw.addAnchorPoints(anchorStartFrameX, anchorStartFrameY);
@@ -314,24 +314,21 @@ void  OnlineWarpHolder::newAnchorPointReached(){
 */
 
 void OnlineWarpHolder::computeAlignmentForSecondBlock(const int& startFrameY){
+	//NEW FUNCTION - calls only the energy and uses the stored chromagram	
 	int startFrameX = 0;
-	
 	
 	if (tw.anchorPoints.size() > 0){
 		startFrameX = tw.anchorPoints[tw.anchorPoints.size()-1][0];
-		printf("2nd - starting X is %i (startY %i)\n", startFrameX, startFrameY);
+		printf("2nd BLOCK COMPUTE - starting X is %i (startY %i)\n", startFrameX, startFrameY);
 	}
 	
-	//NEED TO ASSUME WE DON'T HAVE 
 	double timeBefore = ofGetElapsedTimef();
-	//	printf("PART SIM: startFrameX %i, startFrameY: %i\n", startFrameX, startFrameY);
-	//NEW FUNCTION - calls only the energy and uses the stored chromagram	
 	
 	tw.calculatePartJointSimilarityMatrix(&tw.firstEnergyVector, &tw.secondEnergyVector, &tw.chromaSimilarityMatrix, &tw.tmpSimilarityMatrix, 
 										  startFrameX, startFrameY, startFrameX+3*alignmentFramesize, startFrameY + alignmentFramesize);
 	
 	printf("\nTMP SIM MATRIX\n");
-	printAlignmentMatrix(tw.tmpSimilarityMatrix, 20);
+	printAlignmentMatrix(tw.tmpSimilarityMatrix, 80);
 	
 	//	printf("TMP size of tmp sim is %i\n", (int)tw.tmpSimilarityMatrix.size());	
 	double elapsedTime = ofGetElapsedTimef() - timeBefore;
@@ -1329,12 +1326,12 @@ void OnlineWarpHolder::iterateThroughAudioMatrix(DoubleMatrix* myDoubleMatrix, D
 
 void OnlineWarpHolder::extendChromaSimilarityMatrix(DoubleMatrix* myDoubleMatrix, DoubleVector* energyVector){
 	printf("Extend: sending to causal part\n");
-	printChromagramMatrix(20, (*myDoubleMatrix));
+	//printChromagramMatrix(20, (*myDoubleMatrix));
 	
 	tw.calculateCausalChromaSimilarityMatrix(tw.chromaMatrix, tw.secondMatrix, tw.chromaSimilarityMatrix);//whichever order as one is extended
 	
 	if (tw.chromaMatrix.size() < 20){
-		printChromaSimilarityMatrix(20);
+//		printChromaSimilarityMatrix(20);
 	}else{
 		printf("chr sim size %i\n", (int)tw.chromaSimilarityMatrix.size());
 	}
@@ -1657,7 +1654,7 @@ void OnlineWarpHolder::loadFirstAudio(string soundFileName){
 	
 	processAudioToDoubleMatrix(&tw.chromaMatrix, &tw.firstEnergyVector);//non causal way for first audio (ref) file
 	
-	printChromagramMatrix(20, tw.chromaMatrix);
+	//printChromagramMatrix(20, tw.chromaMatrix);
 	//processAudioToMatrix(&tw.chromaMatrix, &tw.firstEnergyVector);
 	
 	soundFileLoader->loadLibSndFile(infilename);//LOADS IT INTO SOUNDFILE.AUDIOHOLDER.AUDIOVECTOR
@@ -1681,7 +1678,7 @@ void OnlineWarpHolder::loadSecondAudio(string sndFileName){
 	//the 'live' file to be analysed
 	processAudioToMatrix(&tw.secondMatrix, &tw.secondEnergyVector);
 		
-	printChromagramMatrix(20, tw.secondMatrix);
+//	printChromagramMatrix(20, tw.secondMatrix);
 	
 	//	processAudioToDoubleMatrix(&tw.secondMatrix, &tw.secondEnergyVector); - I guess non causal way
 	
