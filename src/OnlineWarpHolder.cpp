@@ -351,7 +351,7 @@ void OnlineWarpHolder::computeAlignmentForSecondBlock(const int& startFrameY){
 	//printf("\nTMP SIM MATRIX\n");printAlignmentMatrix(tw.tmpSimilarityMatrix, 80);-printing TMP SIM matrix
 	//	printf("TMP size of tmp sim is %i\n", (int)tw.tmpSimilarityMatrix.size());	
 	double elapsedTime = ofGetElapsedTimef() - timeBefore;//	printf("PART SIM MATRIX CAL TAKES %f\n", elapsedTime);
-//	printf("TMP ALIGN MATRIX restricted only by %i x %i \n", (int)tw.tmpSimilarityMatrix.size()-1, (int) tw.tmpSimilarityMatrix[0].size()-1);
+	printf("TMP ALIGN MATRIX restricted only by %i x %i \n", (int)tw.tmpSimilarityMatrix.size()-1, (int) tw.tmpSimilarityMatrix[0].size()-1);
 	
 	tw.calculatePartAlignmentMatrix(tw.tmpSimilarityMatrix.size()-1, tw.tmpSimilarityMatrix[0].size()-1, &tw.tmpAlignmentMeasureMatrix, &tw.tmpSimilarityMatrix);
 	
