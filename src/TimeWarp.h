@@ -135,7 +135,7 @@ public:
 	int getMinimumIndexOfColumnFromMatrix(int i, DoubleMatrix* matrix);
 	int getMinimumIndexOfRowFromMatrix(int j, DoubleMatrix& matrix);
 	
-	void addNewForwardsPathFromYindex(int indexY, IntMatrix* backPath, int anchorPointX, int anchorPointY);
+	void addNewForwardsPathFromYindex(const int& indexY, IntMatrix* backPath, const int& anchorPointX, const int& anchorPointY);
 //PART ALIGNMENT FUNCTIONS
 	void calculatePartSimilarityMatrix(DoubleMatrix* firstChromaMatrix, DoubleMatrix* secondChromaMatrix, DoubleMatrix* simMatrix, int startX, int startY, int endX);
 	void calculatePartAlignmentMatrix(int endIndexX, int endIndexY, DoubleMatrix* alignmentMatrix, DoubleMatrix* simMatrix);

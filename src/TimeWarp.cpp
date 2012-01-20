@@ -687,9 +687,9 @@ void TimeWarp::calculateMinimumAlignmentPathRow(DoubleMatrix* alignmentMatrix, I
 		
 		indexOfBackwardsPath++;
 	}
-		printf("final index of backwards path is %i and i is %i \n", (int) (*backPath)[0].size()-1, indexOfBackwardsPath);
+		printf("ROW_final index of backwards path is %i and i is %i \n", (int) (*backPath)[0].size()-1, indexOfBackwardsPath);
 	
-	printBackwardsPath(0, (*backPath).size(), backPath);
+	printBackwardsPath(0, (*backPath)[0].size(), backPath);
 	
 	//	backwardsAlignmentIndex = backwardsAlignmentPath[0].size()-1;//remember that this goes backwards!
 	
@@ -828,9 +828,9 @@ void TimeWarp::printForwardsPath(){
 
 void TimeWarp::printBackwardsPath(int startIndex, int endIndex, const IntMatrix* backPath){
 	if (endIndex <= (*backPath)[0].size()){
-		printf("size of path is %i by %i\n", (int) (*backPath).size(), (int) (*backPath)[0].size());
+		printf("PrintBackwards: %i to %i size of path is %i by %i\n", startIndex, endIndex, (int) (*backPath).size(), (int) (*backPath)[0].size());
 	for (int i = startIndex;i < endIndex;i++){
-		printf("Path[%i]:: %i : %i \n", i, (*backPath)[0][i], (*backPath)[1][i]);
+		printf("BackPath[%i]:: %i : %i \n", i, (*backPath)[0][i], (*backPath)[1][i]);
 		}
 	}
 }
@@ -848,10 +848,11 @@ int forwardsIndex = forwardsAlignmentPath.size();
 	v.push_back((*backPath)[0][indexX]);//chromaMatrix.size()-1
 	forwardsAlignmentPath.push_back(v);
 	v.clear();
-	v.push_back(forwardsAlignmentPath[0][indexX]);//secondMatrix
+	//v.push_back(forwardsAlignmentPath[0][indexX]);//secondMatrix
+	v.push_back((*backPath)[1][indexX]);//new 
 	forwardsAlignmentPath.push_back(v);
 	indexX--;
-	printf("FORWARDS PATH STARTED AS %i, %i\n", forwardsAlignmentPath[0][0], forwardsAlignmentPath[0][1]);
+	printf("FORWARDS PATH STARTED AS %i, %i\n", forwardsAlignmentPath[0][0], forwardsAlignmentPath[1][0]);
 	}
 	else{
 	//forwards path has been started and we need anchor point
@@ -877,16 +878,17 @@ void TimeWarp::extendForwardAlignmentPathToYanchor(int endY, IntMatrix* backPath
 	int indexY = (*backPath)[1].size() - 1;
 	
 	if (forwardsIndex == 0){
-		printf("initialise forwards path..\n");
+		printf("Y_AnchorExtend_initialise forwards path.(%i,%i).\n", indexX, indexY);
 		IntVector v;
-		
-		v.push_back((*backPath)[0][indexX]);//chromaMatrix.size()-1
+		printf("aim to start with %i and %i, anchors %i,%i\n", (*backPath)[0][indexX], (*backPath)[1][indexX], anchorPointX, anchorPointY);
+		v.push_back((*backPath)[0][indexY]);//chromaMatrix.size()-1
 		forwardsAlignmentPath.push_back(v);
 		v.clear();
-		v.push_back(forwardsAlignmentPath[0][indexX]);//secondMatrix
+		//v.push_back(forwardsAlignmentPath[0][indexX]);
+		v.push_back((*backPath)[1][indexY]);
 		forwardsAlignmentPath.push_back(v);
-		indexX--;
-		printf("FORWARDS PATH STARTED AS %i, %i\n", forwardsAlignmentPath[0][0], forwardsAlignmentPath[0][1]);
+		indexY--;
+		printf("FORWARDS PATH STARTED AS %i, %i\n", forwardsAlignmentPath[0][0], forwardsAlignmentPath[1][0]);
 	}
 	else{
 		//forwards path has been started and we need anchor point
@@ -896,19 +898,20 @@ void TimeWarp::extendForwardAlignmentPathToYanchor(int endY, IntMatrix* backPath
 	
 	
 	while ((*backPath)[1][indexY] <= endY){
-		addNewForwardsPath(indexX, backPath, anchorPointX, anchorPointY);
-		//	printf("Forwards path from index %i:: path %i : %i\n", indexX, forwardsAlignmentPath[0][forwardsIndex], forwardsAlignmentPath[1][forwardsIndex]);
+		addNewForwardsPathFromYindex(indexY, backPath, anchorPointX, anchorPointY);
+		printf("Forwards path from index %i:: path %i : %i\n", indexY, forwardsAlignmentPath[0][forwardsIndex], forwardsAlignmentPath[1][forwardsIndex]);
 		indexY--;
 		forwardsIndex++;	   
 	}
 	
 }
 
-void TimeWarp::addNewForwardsPathFromYindex(int indexY, IntMatrix* backPath, int anchorPointX, int anchorPointY){
+void TimeWarp::addNewForwardsPathFromYindex(const int& indexY, IntMatrix* backPath, const int& anchorPointX, const int& anchorPointY){
 	//pushes back
 	if (indexY < (*backPath)[1].size()){
 		forwardsAlignmentPath[0].push_back((int)(*backPath)[0][indexY]+ anchorPointX);
 		forwardsAlignmentPath[1].push_back((int)(*backPath)[1][indexY] + anchorPointY);
+		printf("popping back backpath %i : %i,%i\n", indexY, (int)(*backPath)[0][indexY]+ anchorPointX, (int)(*backPath)[1][indexY]+ anchorPointY);
 	}
 }
 

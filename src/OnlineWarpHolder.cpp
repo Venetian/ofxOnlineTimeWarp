@@ -344,7 +344,9 @@ void OnlineWarpHolder::computeAlignmentForSecondBlock(const int& startFrameY){
 	//	printf("\n CALC PART ALIGNMENT MIN PATH\n");
 	tw.calculateMinimumAlignmentPathRow(&tw.tmpAlignmentMeasureMatrix, &tw.tmpBackwardsPath, true);//true is for greedy calculation
 	
-	//	printf("\n PART ALIGNMENT GENERATES THIS BACKWARDS PATH:: \n");
+	printf("\n PART ALIGNMENT GENERATES THIS BACKWARDS PATH:: \n");
+	
+	
 	tw.extendForwardAlignmentPathToYanchor(alignmentHopsize, &tw.tmpBackwardsPath, startFrameX, startFrameY);
 	
 	tw.printForwardsPath();
