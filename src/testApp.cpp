@@ -11,10 +11,10 @@ void testApp::setup(){
 	warpHolder = new OnlineWarpHolder();
 	warpHolder->setup();
 	
-	drawWarpMatrix = false;
+	drawWarpMatrix = true;
 	onlineAnalysis = true;
 	causalAnalysisStarted = false;
-	
+	warpHolder->realTimeAnalysisMode = &causalAnalysisStarted;
 	
 	ofBackground(255,255,255);
 	ofSetFrameRate(30);
@@ -406,7 +406,7 @@ void testApp::mousePressed(int x, int y, int button){
 			showingInputDevices = false;
 		}
 	}
-	
+	warpHolder->mousePressed(x, y, button);
 }
 
 

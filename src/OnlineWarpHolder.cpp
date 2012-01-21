@@ -63,6 +63,7 @@ void OnlineWarpHolder::setup(){
 	
 	alignmentHopsize = 200;
 	alignmentFramesize = 400;
+	screenToDraw = 0;
 	
 	doCausalAlignment = true;
 	
@@ -104,6 +105,7 @@ void OnlineWarpHolder::setup(){
 	sfinfo.format = 0;
 	
 	moveOn = true;
+	informationString = "";
 	
 	
 	chromaG.initialise(FRAMESIZE, CHROMAGRAM_FRAMESIZE);
@@ -112,7 +114,7 @@ void OnlineWarpHolder::setup(){
 	//set not to play
 	audioPlaying = false;
 	
-	drawSecondMatrix = false;
+	drawSecondMatrix = true;
 	drawSpectralDifferenceFunction = false;
 	drawSimilarity = true;
 	
@@ -139,6 +141,8 @@ void OnlineWarpHolder::setup(){
 
 	
 	initialiseVariables();
+	startingXframe = 0;
+	startingYframe = 0;
 	
 	
 }
@@ -437,14 +441,50 @@ void OnlineWarpHolder::update(){
 	//if(!audioPaused)
 	//printScoreForRow(audioPosition/CHROMA_CONVERSION_FACTOR, (audioPosition/CHROMA_CONVERSION_FACTOR)+10);
 	
-	
+	if (!*realTimeAnalysisMode){
 	currentPlayingFrame = audioPosition;
 	audioPosition = (int) audioPosition % scrollWidth ;
 	audioPosition /= scrollWidth;
+	}else{
+		//audioPosition = anchorStartFrameX;
+		currentPlayingFrame = anchorStartFrameX;
+	}
+	
+	updateStartingFrame();
 	
 	ofSoundUpdate();
 	
 	
+}
+
+
+void OnlineWarpHolder::updateStartingFrame(){
+	startingXframe = (tw.firstEnergyVector.size() / scrollWidth);
+	startingYframe = (tw.secondEnergyVector.size() / scrollWidth);//secondMatrix
+	
+	//	printf("DRAW SIM SIZE start frames  %i x %i \n", startingXframe, startingYframe);
+	if (!*realTimeAnalysisMode && tw.backwardsAlignmentPath.size() > 0 ){ 
+		startingXframe = (tw.backwardsAlignmentPath[0][backwardsAlignmentIndex]/ scrollWidth);
+		startingYframe = max(0	, (int)(tw.backwardsAlignmentPath[1][backwardsAlignmentIndex]/ scrollWidth));//*conversionFactor 
+		//FIX THE 1 - ASDDED AS DEBUG
+		//	printf("alignment index %i, VERSUS DRAW SIM SIZE %i x %i \n", backwardsAlignmentIndex, startingXframe, startingYframe);
+	}else{
+		startingXframe = anchorStartFrameX / scrollWidth;//current position for us to show recent anchors ON the screen
+		startingYframe = anchorStartFrameY / scrollWidth;
+	}
+	
+	//PROBLEM IS THAT THE y value startYframe is not correctly incremented
+	
+	//tmp 
+	//	startingXframe = 0;
+	// 	startingYframe = 0;
+	
+	//	int startingFrame = findStartWidthFrame();
+	//	startingFrame = numberOfScrollWidthsForFirstFile * scrollWidth/conversionFactor;
+	
+	startingXframe *= scrollWidth;// /conversionFactor;
+	startingYframe *= scrollWidth;// /conversionFactor;
+	//need to fix for second file too
 }
 
 void OnlineWarpHolder::updateAlignmentPathIndex(int identifier){
@@ -470,6 +510,24 @@ void OnlineWarpHolder::updateAlignmentPathIndex(int identifier){
 //--------------------------------------------------------------
 void OnlineWarpHolder::draw(){
 	
+	switch (screenToDraw) {
+		case 0:
+			drawChromaSimilarityMatrix();
+			break;
+		case 1:
+			drawDoubleMatrix(tw.tmpSimilarityMatrix);
+			break;
+		case 2:
+			drawChromoGram();
+			break;
+		default:
+			break;
+			
+			
+	}
+	ofSetColor(255, 255, 255);
+	ofDrawBitmapString(informationString, 20, 20);	
+	/*
 	if (drawSimilarity){
 		//drawSimilarityMatrix();
 		drawChromaSimilarityMatrix();//new fn with alignment causal including energy vector
@@ -477,16 +535,16 @@ void OnlineWarpHolder::draw(){
 		
 	}
 	else{
-		drawDoubleMatrix(&tw.tmpSimilarityMatrix);
-	//	drawDoubleMatrix(&tw.chromaSimilarityMatrix);
+		drawDoubleMatrix(tw.tmpSimilarityMatrix);
+	//	drawDoubleMatrix(tw.chromaSimilarityMatrix);
 	}
 	//drawChromoGram();
 	
-	
+	*/
 }
 
 
-void OnlineWarpHolder::drawEnergyVectorFromPointer(DoubleVector* energyVec){
+void OnlineWarpHolder::drawEnergyVector(const DoubleVector& energyVec){
 	
 	float screenHeight = ofGetHeight() ;
 	float screenWidth = ofGetWidth();  
@@ -494,17 +552,17 @@ void OnlineWarpHolder::drawEnergyVectorFromPointer(DoubleVector* energyVec){
 	int i, j, startingFrame;
 	startingFrame = currentPlayingFrame / scrollWidth;//i.e. number of scroll widths in
 	startingFrame *= scrollWidth;
-	
+
 	for (i = 0; i < scrollWidth - 1; i++){
-		j = min(i + startingFrame, (int)energyVec->size()-1);
-		ofLine(i*screenWidth/scrollWidth, screenHeight - ((*energyVec)[j]*screenHeight/heightFactor),
-			   screenWidth*(i+1)/scrollWidth, screenHeight - ((*energyVec)[j+1]*screenHeight/heightFactor));
+		j = min(i + startingFrame, (int)energyVec.size()-1);
+		ofLine(i*screenWidth/scrollWidth, screenHeight - (energyVec[j]*screenHeight/heightFactor),
+			   screenWidth*(i+1)/scrollWidth, screenHeight - (energyVec[j+1]*screenHeight/heightFactor));
 		
 	}
 }
 
-void OnlineWarpHolder::drawSpectralDifference(DoubleMatrix* dMatrix){
-	if ((*dMatrix).size()>0){
+void OnlineWarpHolder::drawSpectralDifference(const DoubleMatrix& dMatrix){
+	if (dMatrix.size()>0){
 		
 		float screenHeight = ofGetHeight() ;
 		float screenWidth = ofGetWidth();
@@ -517,9 +575,9 @@ void OnlineWarpHolder::drawSpectralDifference(DoubleMatrix* dMatrix){
 		
 		
 		for (i = 1; i < chromoLength; i++){//changed to add 1
-			j = min(i + startingFrame, (int) dMatrix->size()-1 );//in case out of range
+			j = min(i + startingFrame, (int) dMatrix.size()-1 );//in case out of range
 			for (int y = 0;y < 12;y++){			
-				difference = (*dMatrix)[j][11-y] - (*dMatrix)[j-1][11-y];
+				difference = dMatrix[j][11-y] - dMatrix[j-1][11-y];
 				if (difference < 0)
 					difference = 0;//half wave rectify
 				
@@ -559,12 +617,12 @@ void OnlineWarpHolder::drawChromoGram(){
 	
 	
 	if (drawSpectralDifferenceFunction)
-		drawSpectralDifference(dptr);
+		drawSpectralDifference(*dptr);
 	else
-		drawDoubleMatrix(dptr);
+		drawDoubleMatrix(*dptr);
 	
 	ofSetColor(0xFF6666);
-	drawEnergyVectorFromPointer(eptr);
+	drawEnergyVector(*eptr);
 	
 	ofDrawBitmapString(textString,80,480);
 	
@@ -581,12 +639,12 @@ void OnlineWarpHolder::drawChromoGram(){
 	
 }
 
-void OnlineWarpHolder::drawDoubleMatrix(DoubleMatrix* dMatrix){
+void OnlineWarpHolder::drawDoubleMatrix(const DoubleMatrix& dMatrix){
 	
-	
-	if ((*dMatrix).size()>0){
-		int matrixWidth = (*dMatrix).size();
-		int matrixHeight = (*dMatrix)[0].size();
+	ofBackground(0,0,0);
+	if (dMatrix.size()>0){
+		int matrixWidth = dMatrix.size();
+		int matrixHeight = dMatrix[0].size();
 		
 		float screenHeight = ofGetHeight() ;
 		float screenWidth = ofGetWidth();
@@ -601,158 +659,51 @@ void OnlineWarpHolder::drawDoubleMatrix(DoubleMatrix* dMatrix){
 		 for (i = 0; i < chromoLength; i++){
 		 j = min(i + startingFrame, (int) dMatrix->size()-1 ) ;
 		 for (int y = 0;y < 12;y++){
-		 ofSetColor(0,0,255 * (*dMatrix)[j][11-y]);//, 0;
+		 ofSetColor(0,0,255 * dMatrix[j][11-y]);//, 0;
 		 ofRect(i*screenWidth/chromoLength,y*screenHeight/12,screenWidth/chromoLength,screenHeight/12);
 		 }//end y
 		 }//end i
 		 
 		 */
 		
-		float ratio = max(matrixWidth/screenWidth,matrixHeight/screenHeight);
-		for (int x = 0; x < screenWidth; x+= 5){
-			//j = min(i + startingFrame, (int) dMatrix->size()-1 ) ;
-			for (int y = 0;y < screenHeight;y+= 5){
-				int xIndex = (int)(x*ratio);
-				int yIndex = (int)(y*ratio);
+//		float ratio = max(matrixWidth/screenWidth,matrixHeight/screenHeight);
+		
+		//float widthRatio = matrixWidth/screenWidth;
+		//float heightRatio = matrixHeight/screenHeight;
+		float heightFactor = screenHeight/matrixHeight;
+		float widthFactor = screenWidth/matrixWidth;
+		//j = min(i + startingFrame, (int) dMatrix->size()-1 ) ;
+	//	for (int xIndex = 0; x < screenWidth; x+= 5)
+		
+		for (int xIndex = 0;xIndex < matrixWidth;xIndex++){
+			
+			for (int yIndex = 0;yIndex < matrixHeight;yIndex++){
+				//int xIndex = (int)(x*widthRatio);
+				//int yIndex = (int)(y*heightRatio);
 				
-				if (xIndex < matrixWidth && yIndex < matrixHeight)
-					ofSetColor(0,0,255 * (*dMatrix)[xIndex][yIndex]);//, 0;
-				else 
-					ofSetColor(0,0,0);
+				int y = (float)yIndex*heightFactor;
+				int x = xIndex*widthFactor;
 				
-				ofRect(x,y,5,5);//screenWidth/matrixWidth,screenHeight/matrixHeight);
+			//	if (xIndex >= 0 && xIndex < matrixWidth )
+					ofSetColor(0,0,255 * dMatrix[xIndex][yIndex]);//, 0;
+			//	else 
+			//		ofSetColor(0,0,0);
+				
+				ofRect(x,y,widthFactor,heightFactor);//widthRatio, heightRatio);//screenWidth/matrixWidth,screenHeight/matrixHeight);
+				
+			//	ofSetColor(255,255,255);
+			//	ofDrawBitmapString(ofToString(yIndex), 20, y);
+				
 			}//end y
+			
 		}//end i
 		
+		informationString = "Double matrix width "+ofToString(matrixWidth)+"  heioght "+ofToString(matrixHeight);
 	}///end if matrix has content
 	else{
 		printf("Error - please load audio first");
 	}
 	
-	
-}
-
-
-void OnlineWarpHolder::drawSimilarityMatrix(){
-	
-	int simHeight = (tw.similarityMatrix[0]).size();
-	int simWidth = tw.similarityMatrix.size();
-	
-	int sizeOfMatrix = (int) tw.similarityMatrix.size();//tw.chromaMatrix.size();
-	int sizeOfSecondMatrix = (int) tw.similarityMatrix[0].size();
-	
-	//in chromagram frames
-	int startingXframe = tw.chromaSimilarityMatrix.size() / (scrollWidth/conversionFactor);
-	int startingYframe = tw.chromaSimilarityMatrix[0].size() / (scrollWidth/conversionFactor);
-	
-	
-	if (tw.backwardsAlignmentPath.size() > 0){
-		startingXframe = tw.backwardsAlignmentPath[0][backwardsAlignmentIndex] / (scrollWidth/conversionFactor);
-		startingYframe = tw.backwardsAlignmentPath[1][backwardsAlignmentIndex] / (scrollWidth/conversionFactor);
-	}
-	
-	startingXframe = startingXframe * scrollWidth/conversionFactor;
-	startingYframe = startingYframe * scrollWidth/conversionFactor;
-	
-	//	int startingFrame = findStartWidthFrame();
-	//	startingFrame = numberOfScrollWidthsForFirstFile * scrollWidth/conversionFactor;
-	
-	
-	//need to fix for second file too
-	
-	int *indexOfAlignmentPathTested;
-	int lengthOfPath = 0;
-	if (tw.backwardsAlignmentPath.size() > 0)
-		lengthOfPath = tw.backwardsAlignmentPath[0].size()-1;
-	
-	indexOfAlignmentPathTested = &lengthOfPath;
-	
-	int xcoord;
-	for (int x = 0;x < screenWidth;x++)
-	{
-		for (int y =0;y < screenHeight;y++){
-			
-			xcoord = (x / screenWidth) * chromoLength;//was simWidth
-			//xcoord += startingFrame;
-			xcoord += startingXframe;
-			
-			int ycoord = y * chromoLength/ screenHeight;
-			//ycoord += startingFrame;
-			ycoord += startingYframe;
-			
-			int colour = 0;
-			//int ycoord = y * simHeight/ screenHeight;
-			//y += startingFrame;
-			if (xcoord < sizeOfMatrix && ycoord < sizeOfSecondMatrix)
-				colour = tw.similarityMatrix[xcoord][ycoord]*255;
-			
-			
-			
-			ofSetColor(colour,0,0);
-			
-			ofRect(x,y,1,1);
-			
-		}
-	}
-	
-	
-	
-	ofSetColor(0,255,255);
-	//	drawAlignmentPath(startingXframe, startingYframe, &tw.tmpBackwardsPath);
-	drawForwardsAlignmentPath(startingXframe, startingYframe);
-	
-	
-	//	ofSetColor(0,0,255);
-	//	drawAlignmentPath(startingXframe, startingYframe, &tw.backwardsAlignmentPath);
-	
-	
-	//SET TEXT
-	ofSetColor(255 ,255,255);
-	string textString;
-	textString = "width : ";
-	textString += ofToString(simWidth);
-	
-	textString += "  height : ";
-	textString += ofToString(simHeight);
-	
-	//	textString += "  startframe : ";
-	//	textString += ofToString(startingFrame);
-	
-	textString += "  Xframe : ";
-	textString += ofToString(startingXframe);
-	
-	textString += "  Yframe : ";
-	textString += ofToString(startingYframe);
-	
-	textString += "  currentFrame : ";
-	textString += ofToString(currentPlayingFrame);
-	
-	textString += "  scrollwidth: ";
-	textString += ofToString(scrollWidth);
-	
-	textString += "  xcoord: ";
-	textString += ofToString(xcoord);
-	
-	textString += "  Clength: ";
-	textString += ofToString(chromoLength);
-	
-	textString += "  no.Scrolls: ";
-	textString += ofToString(numberOfScrollWidthsForFirstFile);
-	//END SET TEXT
-	
-	ofSetColor(0x0000FF);// && tw.backwardsAlignmentPath.size() > 0  
-	if (firstAudioFilePlaying){// && tw.alignmentMeasureMatrix.size() > 0 
-		ofLine(audioPosition*screenWidth, 0, audioPosition*screenWidth, height);
-		checkIfAudioPositionExceedsWidthForFirstFile();	
-		//	drawAlignmentmeasureValues(currentPlayingFrame);
-	}
-	else{
-		ofLine(0, audioPosition*screenHeight, screenWidth, audioPosition*screenHeight);	
-	}
-	
-	ofDrawBitmapString(textString,80,580);
-	
-	ofDrawBitmapString(userInfoString,80,80);
 	
 }
 
@@ -772,29 +723,10 @@ void OnlineWarpHolder::drawChromaSimilarityMatrix(){
 	float chromogramScrollWidth = (scrollWidth/conversionFactor);
 	//frames needed in energy still
 	//in chromagram frames
-	int startingXframe = (tw.firstEnergyVector.size() / scrollWidth);
-	int startingYframe = (tw.secondEnergyVector.size() / scrollWidth);//secondMatrix
+
+	//updateStartingFrame();
 	
-	//	printf("DRAW SIM SIZE start frames  %i x %i \n", startingXframe, startingYframe);
-	if (tw.backwardsAlignmentPath.size() > 0 ){ 
-		startingXframe = (tw.backwardsAlignmentPath[0][backwardsAlignmentIndex]/ scrollWidth);
-		startingYframe = max(0	, (int)(tw.backwardsAlignmentPath[1][backwardsAlignmentIndex]/ scrollWidth));//*conversionFactor 
-		//FIX THE 1 - ASDDED AS DEBUG
-		//	printf("alignment index %i, VERSUS DRAW SIM SIZE %i x %i \n", backwardsAlignmentIndex, startingXframe, startingYframe);
-	}
-	
-	//PROBLEM IS THAT THE y value startYframe is not correctly incremented
-	
-	//tmp 
-	//	startingXframe = 0;
-	// 	startingYframe = 0;
-	
-	//	int startingFrame = findStartWidthFrame();
-	//	startingFrame = numberOfScrollWidthsForFirstFile * scrollWidth/conversionFactor;
-	
-	startingXframe *= scrollWidth;// /conversionFactor;
-	startingYframe *= scrollWidth;// /conversionFactor;
-	//need to fix for second file too
+	informationString = "start X "+ofToString(startingXframe)+", Y "+ofToString(startingYframe);
 	
 	int *indexOfAlignmentPathTested;
 	int lengthOfPath = 0;
@@ -1300,7 +1232,7 @@ void OnlineWarpHolder::processAudioToDoubleMatrix(DoubleMatrix* myDoubleMatrix, 
 }
 
 
-void OnlineWarpHolder::processAudioToMatrix(DoubleMatrix* myDoubleMatrix, DoubleVector* energyVector){
+void OnlineWarpHolder::processAudioToMatrixWithCausalAlignment(DoubleMatrix* myDoubleMatrix, DoubleVector* energyVector){
 	resetMatrix(myDoubleMatrix, energyVector);
 	iterateThroughAudioMatrix(myDoubleMatrix, energyVector);
 }
@@ -1373,7 +1305,8 @@ void OnlineWarpHolder::updateCausalAlignment(){
 	
 	anchorStartFrameX = tw.forwardsAlignmentPath[0][(tw.forwardsAlignmentPath[0].size()-1)];
 	anchorStartFrameY = tw.forwardsAlignmentPath[1][(tw.forwardsAlignmentPath[0].size()-1)];
-	printf("SEQUENTIAL ALIGNMENT ANCHORS %i,%i\n", anchorStartFrameX, anchorStartFrameY);
+	//printf("SEQUENTIAL ALIGNMENT ANCHORS %i,%i\n", anchorStartFrameX, anchorStartFrameY);
+	informationString = "Doing sequnetial alignment, anchors "+ofToString(anchorStartFrameX)+" , "+ofToString(anchorStartFrameY);
 	//anchorStartFrameY += alignmentHopsize;
 	tw.addAnchorPoints(anchorStartFrameX, anchorStartFrameY);
 	tw.copyForwardsPathToBackwardsPath();
@@ -1548,12 +1481,21 @@ void OnlineWarpHolder::keyPressed  (int key){
 		tw.initialiseVariables();
 		
 		loadSecondAudio(secondFileName);
-		
-	//	calculateSimilarityAndAlignment();
-		
-		
+	
 		
 	}
+	
+	if (key == '['){
+		screenToDraw--;
+		screenToDraw = (screenToDraw+NUMBER_OF_SCREENS) % NUMBER_OF_SCREENS;
+		printf("screento draw %i\n", screenToDraw);
+	}
+	
+	if (key == ']'){
+		screenToDraw++;
+		screenToDraw = screenToDraw % NUMBER_OF_SCREENS;
+	}
+	
 	
 	if (key == 'f'){
 		tw.printBackwardsPath(0, (int) tw.forwardsAlignmentPath[0].size(), &tw.forwardsAlignmentPath);
@@ -1573,7 +1515,7 @@ void OnlineWarpHolder::keyPressed  (int key){
 		drawSecondMatrix = !drawSecondMatrix;
 	}
 	
-	if (key == 'd'){
+	if (key == 's'){
 		drawSpectralDifferenceFunction = !drawSpectralDifferenceFunction;
 	}
 	
@@ -1623,14 +1565,21 @@ void OnlineWarpHolder::mouseDragged(int x, int y, int button){
 
 //--------------------------------------------------------------
 void OnlineWarpHolder::mousePressed(int x, int y, int button){
-	bNoise = true;
+//	bNoise = true;
+	
+	printf("mouse clicked %i,%i\n", x, y);
+	printf("X = %i, ", (int)(startingXframe+(float)(x*scrollWidth)/screenWidth));
+	printf("Y = %i\n", (int)(startingYframe+(float)(y*scrollWidth)/screenHeight));
 	//moveOn = true;
+	anchorStartFrameX = (int)(startingXframe+(float)(x*scrollWidth)/screenWidth);
+	anchorStartFrameY = (int)(startingYframe+(float)(y*scrollWidth)/screenHeight);
+	tw.addAnchorPoints(anchorStartFrameX, anchorStartFrameY);
 }
 
 
 //--------------------------------------------------------------
 void OnlineWarpHolder::mouseReleased(int x, int y, int button){
-	bNoise = false;
+//	bNoise = false;
 }
 
 //--------------------------------------------------------------
@@ -1703,6 +1652,8 @@ void OnlineWarpHolder::loadFirstAudio(string soundFileName){
 	
 	printf("Load FIRST file %s\n", soundFileName.c_str());
 
+	informationString = "Loading first file.."+ soundFileName;
+	
 	tw.initialiseVariables();
 	tw.clearVectors();
 	
@@ -1729,6 +1680,7 @@ void OnlineWarpHolder::loadSecondAudio(string sndFileName){
 	const char	*infilenme = sndFileName.c_str() ;	
 	loadLibSndFile(infilenme);
 	printf("Load SECOND file\n");
+	informationString = "Loading second file.."+ soundFileName;
 	
 	resetSequentialAnalysis();
 	resetMatrix(&tw.secondMatrix, &tw.secondEnergyVector);
@@ -1736,12 +1688,12 @@ void OnlineWarpHolder::loadSecondAudio(string sndFileName){
 //	resetForwardsPath();//sets anchor points and wipes previous forwards path
 	
 	//the 'live' file to be analysed
-	processAudioToMatrix(&tw.secondMatrix, &tw.secondEnergyVector);
+	processAudioToMatrixWithCausalAlignment(&tw.secondMatrix, &tw.secondEnergyVector);
 		
 //	printChromagramMatrix(20, tw.secondMatrix);
 	
 	//	processAudioToDoubleMatrix(&tw.secondMatrix, &tw.secondEnergyVector); - I guess non causal way
-	
+	//	calculateSimilarityAndAlignment(); - now done in process to matrix
 }
 
 
@@ -2015,6 +1967,132 @@ void OnlineWarpHolder::dontDoJunkAlignment(){
  processAudioToDoubleMatrix(&tw.chromaMatrix, &tw.firstEnergyVector);
  
  */
-
+/*
+ 
+ void OnlineWarpHolder::drawSimilarityMatrix(){
+ 
+ int simHeight = (tw.similarityMatrix[0]).size();
+ int simWidth = tw.similarityMatrix.size();
+ 
+ int sizeOfMatrix = (int) tw.similarityMatrix.size();//tw.chromaMatrix.size();
+ int sizeOfSecondMatrix = (int) tw.similarityMatrix[0].size();
+ 
+ //in chromagram frames
+ startingXframe = tw.chromaSimilarityMatrix.size() / (scrollWidth/conversionFactor);
+ startingYframe = tw.chromaSimilarityMatrix[0].size() / (scrollWidth/conversionFactor);
+ 
+ 
+ if (tw.backwardsAlignmentPath.size() > 0){
+ startingXframe = tw.backwardsAlignmentPath[0][backwardsAlignmentIndex] / (scrollWidth/conversionFactor);
+ startingYframe = tw.backwardsAlignmentPath[1][backwardsAlignmentIndex] / (scrollWidth/conversionFactor);
+ }
+ 
+ startingXframe = startingXframe * scrollWidth/conversionFactor;
+ startingYframe = startingYframe * scrollWidth/conversionFactor;
+ 
+ //	int startingFrame = findStartWidthFrame();
+ //	startingFrame = numberOfScrollWidthsForFirstFile * scrollWidth/conversionFactor;
+ 
+ 
+ //need to fix for second file too
+ 
+ int *indexOfAlignmentPathTested;
+ int lengthOfPath = 0;
+ if (tw.backwardsAlignmentPath.size() > 0)
+ lengthOfPath = tw.backwardsAlignmentPath[0].size()-1;
+ 
+ indexOfAlignmentPathTested = &lengthOfPath;
+ 
+ int xcoord;
+ for (int x = 0;x < screenWidth;x++)
+ {
+ for (int y =0;y < screenHeight;y++){
+ 
+ xcoord = (x / screenWidth) * chromoLength;//was simWidth
+ //xcoord += startingFrame;
+ xcoord += startingXframe;
+ 
+ int ycoord = y * chromoLength/ screenHeight;
+ //ycoord += startingFrame;
+ ycoord += startingYframe;
+ 
+ int colour = 0;
+ //int ycoord = y * simHeight/ screenHeight;
+ //y += startingFrame;
+ if (xcoord < sizeOfMatrix && ycoord < sizeOfSecondMatrix)
+ colour = tw.similarityMatrix[xcoord][ycoord]*255;
+ 
+ 
+ 
+ ofSetColor(colour,0,0);
+ 
+ ofRect(x,y,1,1);
+ 
+ }
+ }
+ 
+ 
+ 
+ ofSetColor(0,255,255);
+ //	drawAlignmentPath(startingXframe, startingYframe, &tw.tmpBackwardsPath);
+ drawForwardsAlignmentPath(startingXframe, startingYframe);
+ 
+ 
+ //	ofSetColor(0,0,255);
+ //	drawAlignmentPath(startingXframe, startingYframe, &tw.backwardsAlignmentPath);
+ 
+ 
+ //SET TEXT
+ ofSetColor(255 ,255,255);
+ string textString;
+ textString = "width : ";
+ textString += ofToString(simWidth);
+ 
+ textString += "  height : ";
+ textString += ofToString(simHeight);
+ 
+ //	textString += "  startframe : ";
+ //	textString += ofToString(startingFrame);
+ 
+ textString += "  Xframe : ";
+ textString += ofToString(startingXframe);
+ 
+ textString += "  Yframe : ";
+ textString += ofToString(startingYframe);
+ 
+ textString += "  currentFrame : ";
+ textString += ofToString(currentPlayingFrame);
+ 
+ textString += "  scrollwidth: ";
+ textString += ofToString(scrollWidth);
+ 
+ textString += "  xcoord: ";
+ textString += ofToString(xcoord);
+ 
+ textString += "  Clength: ";
+ textString += ofToString(chromoLength);
+ 
+ textString += "  no.Scrolls: ";
+ textString += ofToString(numberOfScrollWidthsForFirstFile);
+ //END SET TEXT
+ 
+ ofSetColor(0x0000FF);// && tw.backwardsAlignmentPath.size() > 0  
+ if (firstAudioFilePlaying){// && tw.alignmentMeasureMatrix.size() > 0 
+ ofLine(audioPosition*screenWidth, 0, audioPosition*screenWidth, height);
+ checkIfAudioPositionExceedsWidthForFirstFile();	
+ //	drawAlignmentmeasureValues(currentPlayingFrame);
+ }
+ else{
+ ofLine(0, audioPosition*screenHeight, screenWidth, audioPosition*screenHeight);	
+ }
+ 
+ ofDrawBitmapString(textString,80,580);
+ 
+ ofDrawBitmapString(userInfoString,80,80);
+ 
+ }
+ 
+ 
+ */
 
 

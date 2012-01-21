@@ -28,6 +28,7 @@
 #define CHROMA_CONVERSION_FACTOR 16 //16 times as many frames in energy as in chroma
 #define CHROMAGRAM_FRAMESIZE 2048
 #define FILE_LIMIT 600000
+#define NUMBER_OF_SCREENS 3
 
 //length in terms of frames (at 512 samples per frame - there are 90 per second) => 900: 10 seconds
 
@@ -58,7 +59,7 @@ public:
 	void drawAlignmentmeasureValues(const int& startingYframe);
 	void drawChromoGram();
 	
-
+	void updateStartingFrame();
 	void initialiseVariables();
 	
 	void clearVectors();
@@ -73,8 +74,8 @@ public:
 	
 	DoubleMatrix* matrixPtr;
 	
-	void drawDoubleMatrix(DoubleMatrix* dMatrix);//DoubleMatrix* dMatrix); WOULD BE NICE TO USE POINTER BUT NOT WORKING YET
-	void drawSpectralDifference(DoubleMatrix* dMatrix);
+	void drawDoubleMatrix(const DoubleMatrix& dMatrix);//DoubleMatrix* dMatrix); WOULD BE NICE TO USE POINTER BUT NOT WORKING YET
+	void drawSpectralDifference(const DoubleMatrix& dMatrix);
 	
 	//	DoubleVector firstEnergyVector;
 	//	DoubleVector secondEnergyVector;	
@@ -94,7 +95,7 @@ public:
 	
 	int alignmentHopsize, alignmentFramesize;
 	bool drawSimilarity;
-	void drawSimilarityMatrix();
+//	void drawSimilarityMatrix();
 	void printSimilarityMatrix(int sizeToPrint);
 	void printChromaSimilarityMatrix(int sizeToPrint);
 	void printChromagramMatrix(int sizeToPrint, DoubleMatrix& matrix);
@@ -144,7 +145,7 @@ public:
 	void swapBetweenPlayingFilesUsingAlignmentMatch();
 	int findMatchFromAlignment(bool whichFileToTest);
 	
-	void drawEnergyVectorFromPointer(DoubleVector* energyVec);
+	void drawEnergyVector(const DoubleVector& energyVec);
 	void drawForwardsAlignmentPathOnChromaSimilarity(const int& startingXFrame, const int& startingYFrame);
 	void drawAnchorPointsOnChromaSimilarity(const int& startingXFrame, const int& startingYFrame);
 	void doSequentialAnalysis(float* frame, DoubleMatrix* myDoubleMatrix, DoubleVector* energyVector);
@@ -154,7 +155,7 @@ public:
 //	void newAnchorPointReached();
 	
 	void processAudioToDoubleMatrix(DoubleMatrix* myDoubleMatrix, DoubleVector* energyVector);
-	void processAudioToMatrix(DoubleMatrix* myDoubleMatrix, DoubleVector* energyVector);
+	void processAudioToMatrixWithCausalAlignment(DoubleMatrix* myDoubleMatrix, DoubleVector* energyVector);
 	//online version
 	bool processFrameToMatrix(float newframe[], DoubleMatrix* myDoubleMatrix, DoubleVector* energyVector);
 	
@@ -252,8 +253,12 @@ public:
 	int anchorStartFrameY;
 	bool sequentialAlignment;
 	float sequentialBlockRatio;
+	bool* realTimeAnalysisMode;
+	int startingXframe, startingYframe;
 	
+	int screenToDraw;
 	ofxSoundFileLoader* soundFileLoader;
+	std::string informationString;
 };
 
 #endif
