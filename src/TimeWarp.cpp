@@ -302,7 +302,7 @@ void TimeWarp::calculateCausalChromaSimilarityMatrix(DoubleMatrix& firstChromaMa
 					else
 					distance = getEuclideanDistance(x, y, &firstChromaMatrix, &secondChromaMatrix);
 				
-				//	printf("X %i Y %i dist %f\n", x, y, distance);
+					printf("putting one back X %i Y %i dist %f \n", x, y, distance);
 					simMatrix[x].push_back(distance);
 				}
 			}
@@ -315,39 +315,89 @@ void TimeWarp::calculateCausalChromaSimilarityMatrix(DoubleMatrix& firstChromaMa
 					else
 					distance = getEuclideanDistance(x, y, &firstChromaMatrix, &secondChromaMatrix);
 			
-				//	printf("new row X %i Y %i dist %f\n", x, y, distance);
+				printf("new row X %i Y %i dist %f\n", x, y, distance);
 					d.push_back( distance);	
 				}
 				simMatrix.push_back(d);
 			}
 		}
 	}
-		//	if (size > 0)
-		//		printf("Causial CHROMA ONLY SIM SIZE %i x %i; ", (int)simMatrix.size(), (int) simMatrix[0].size());
-		//printf("First matrix SIZE %i , SECOND size %i\n", (int)firstChromaMatrix.size(), (int) secondChromaMatrix.size());	
+			if (size > 0)
+				printf("Causial CHROMA ONLY SIM SIZE %i x %i; ", (int)simMatrix.size(), (int) simMatrix[0].size());
+		printf("First matrix SIZE %i , SECOND size %i\n", (int)firstChromaMatrix.size(), (int) secondChromaMatrix.size());	
 
 	
 }
 
 
-void TimeWarp::calculateChromaSimilarityMatrix(DoubleMatrix* firstChromaMatrix, DoubleMatrix* secondChromaMatrix, DoubleMatrix* simMatrix){
+
+void TimeWarp::calculateRestrictedCausalChromaSimilarityMatrix(DoubleMatrix& firstChromaMatrix, DoubleMatrix& secondChromaMatrix, DoubleMatrix& simMatrix, const int& Xstart, const int& Ystart, const int& Xlimit, const int& yLimit){
 //calculates the chroma only similarity matrix - used to reduce computation later when doing the joint energy and chroma matrix
-	for (int x = 0;x < (*firstChromaMatrix).size();x++){
-		DoubleVector d;
-		for (int y = 0;y < (*secondChromaMatrix).size();y++){
-			double distance;
-			if (useDotProduct)
-			distance = getChromaSimilarity(x, y, firstChromaMatrix, secondChromaMatrix);
-			else
-			distance = getEuclideanDistance(x, y, firstChromaMatrix, secondChromaMatrix);
-			
-			d.push_back( distance);	
-		}
-		(*simMatrix).push_back(d);
-	}
-	printf("OFFLINE CHROMA ONLY SIM SIZE %i x %i\n", (int)(*simMatrix).size(), (int)(*simMatrix)[0].size());
-	printf("First matrix SIZE %i , SECOND size %i\n", (int)(*firstChromaMatrix).size(), (int)(*secondChromaMatrix).size());
+	DoubleVector d;
 	
+	int size = 0;
+	if (simMatrix.size() > 0){
+		size = simMatrix[0].size();
+	}
+	
+	if (secondChromaMatrix.size() > size ){
+	//	printf("sim matrix size %i and second matrix size %i Xstart %i\n", simMatrix.size(), secondChromaMatrix.size(), Xstart);
+		for (int x = 0;x < Xstart;x++){
+			simMatrix[x].push_back(0);
+		}
+		
+		int endX = min(Xlimit, (int)firstChromaMatrix.size());
+		
+		
+		for (int x = Xstart;x < endX;x++){
+	
+			if (x < simMatrix.size()){
+				//i.e. entries already exist
+				for (int y = (int)simMatrix[x].size();y < secondChromaMatrix.size();y++){
+					double distance;
+					if (useDotProduct)
+						distance = getChromaSimilarity(x, y, &firstChromaMatrix, &secondChromaMatrix);
+					else
+						distance = getEuclideanDistance(x, y, &firstChromaMatrix, &secondChromaMatrix);
+					
+					//	printf("X %i Y %i dist %f\n", x, y, distance);
+					simMatrix[x].push_back(distance);
+				}
+			}
+			else {
+				DoubleVector d;
+				for (int y = 0;y < secondChromaMatrix.size();y++){
+					double distance;
+					if (useDotProduct)
+						distance = getChromaSimilarity(x, y, &firstChromaMatrix, &secondChromaMatrix);
+					else
+						distance = getEuclideanDistance(x, y, &firstChromaMatrix, &secondChromaMatrix);
+					
+					//	printf("new row X %i Y %i dist %f\n", x, y, distance);
+					d.clear();
+					d.push_back( distance);	
+				}
+				simMatrix.push_back(d);
+			}
+			
+		}//end for good section
+		
+		for (int x = endX;x < firstChromaMatrix.size(); x++){
+			if (x < simMatrix.size()){
+				simMatrix[x].push_back(0);
+			}else{
+				d.clear();
+				d.push_back(0);
+				simMatrix.push_back(d);
+			}
+		}//end for x to end
+		
+	}
+	//	if (size > 0)
+	//		printf("Causial CHROMA ONLY SIM SIZE %i x %i; ", (int)simMatrix.size(), (int) simMatrix[0].size());
+	//printf("First matrix SIZE %i , SECOND size %i\n", (int)firstChromaMatrix.size(), (int) secondChromaMatrix.size());	
+	
+
 }
 
 double TimeWarp::getChromaSimilarity(int x, int y, DoubleMatrix* firstChromaMatrix, DoubleMatrix* secondChromaMatrix){

@@ -81,7 +81,8 @@ public:
 	double getEuclideanDistance(int x, int y, DoubleMatrix* firstChromaMatrix, DoubleMatrix* secondChromaMatrix);
 	void calculateChromaSimilarityMatrix(DoubleMatrix* firstChromaMatrix, DoubleMatrix* secondChromaMatrix, DoubleMatrix* simMatrix);
 	void calculateCausalChromaSimilarityMatrix(DoubleMatrix& firstChromaMatrix, DoubleMatrix& secondChromaMatrix, DoubleMatrix& simMatrix);
-
+	void calculateRestrictedCausalChromaSimilarityMatrix(DoubleMatrix& firstChromaMatrix, DoubleMatrix& secondChromaMatrix, DoubleMatrix& simMatrix, const int& Xstart, const int& Ystart, const int& Xlimit, const int& yLimit);
+	
 	
 	void calculateSimilarityMatrix();
 

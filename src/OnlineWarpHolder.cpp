@@ -57,12 +57,12 @@ OnlineWarpHolder::OnlineWarpHolder(){
 
 void OnlineWarpHolder::setup(){
 	sequentialAlignment = true;
-	sequentialBlockRatio = 3;
+	sequentialBlockRatio = 2;
 	
 	soundFileLoader = new  ofxSoundFileLoader();
 	
-	alignmentHopsize = 200;
-	alignmentFramesize = 400;
+	alignmentHopsize = 100;
+	alignmentFramesize = 600;
 	screenToDraw = 0;
 	
 	doCausalAlignment = true;
@@ -125,8 +125,8 @@ void OnlineWarpHolder::setup(){
 	//loadSoundFiles();	
 	//this os load soundfiles
 	
-	string fullFileName = "/Users/andrew/Documents/work/programming/of_preRelease_v007_osx/apps/myOpenFrameworks007/ofxOnlineTimeWarp/bin/data/sound/Bach_short1.wav";
-	secondFileName = "/Users/andrew/Documents/work/programming/of_preRelease_v007_osx/apps/myOpenFrameworks007/ofxOnlineTimeWarp/bin/data/sound/Bach_short2.wav";	
+	string fullFileName = "/Users/andrew/Documents/work/programming/of_preRelease_v007_osx/apps/myOpenFrameworks007/ofxOnlineTimeWarpPortAudioClass/bin/data/sound/Bach_short1.wav";
+	secondFileName = "/Users/andrew/Documents/work/programming/of_preRelease_v007_osx/apps/myOpenFrameworks007/ofxOnlineTimeWarpPortAudioClass/bin/data/sound/Bach_short2.wav";	
 	
 	tw.initialiseVariables();
 	
@@ -217,10 +217,12 @@ void OnlineWarpHolder::calculateCausalAlignment(){
 
 
 void OnlineWarpHolder::setConversionRatio(){
+	if (tw.firstEnergyVector.size() > 0){
 	conversionFactor = (int) round(tw.firstEnergyVector.size() / tw.chromaMatrix.size());
-	chromaConversionRatio = (int) round(tw.firstEnergyVector.size() / tw.chromaMatrix.size());
+	//chromaConversionRatio = (int) round(tw.firstEnergyVector.size() / tw.chromaMatrix.size());
 	chromoLength = scrollWidth / (float)conversionFactor;// CHROMA_CONVERSION_FACTOR;
-	printf("scrollwidth %i, conversion factor %i, chromo length %i\n", scrollWidth, (int)conversionFactor, (int)chromoLength);
+		printf("scrollwidth %i, conversion factor %i, chromo length %i\n", scrollWidth, (int)conversionFactor, (int)chromoLength);
+	}
 }
 
 void OnlineWarpHolder::printVariousMatrixInfo(){
@@ -525,7 +527,7 @@ void OnlineWarpHolder::draw(){
 			
 			
 	}
-	ofSetColor(255, 255, 255);
+	ofSetHexColor(0xFFFFFF);
 	ofDrawBitmapString(informationString, 20, 20);	
 	/*
 	if (drawSimilarity){
@@ -548,17 +550,19 @@ void OnlineWarpHolder::drawEnergyVector(const DoubleVector& energyVec){
 	
 	float screenHeight = ofGetHeight() ;
 	float screenWidth = ofGetWidth();  
-	float heightFactor = 1;
-	int i, j, startingFrame;
-	startingFrame = currentPlayingFrame / scrollWidth;//i.e. number of scroll widths in
-	startingFrame *= scrollWidth;
+	float heightFactor = 1.0;
+	int i, j;//, startingFrame;
+//	startingFrame = currentPlayingFrame / scrollWidth;//i.e. number of scroll widths in
+//	startingFrame *= scrollWidth;
 
 	for (i = 0; i < scrollWidth - 1; i++){
-		j = min(i + startingFrame, (int)energyVec.size()-1);
+		j = min(i + startingXframe, (int)energyVec.size()-1);
 		ofLine(i*screenWidth/scrollWidth, screenHeight - (energyVec[j]*screenHeight/heightFactor),
 			   screenWidth*(i+1)/scrollWidth, screenHeight - (energyVec[j+1]*screenHeight/heightFactor));
 		
 	}
+	
+	//informationString = "start frame "+ofToString(startingXframe)+" and here "+ofToString(startingFrame);
 }
 
 void OnlineWarpHolder::drawSpectralDifference(const DoubleMatrix& dMatrix){
@@ -618,16 +622,18 @@ void OnlineWarpHolder::drawChromoGram(){
 	
 	if (drawSpectralDifferenceFunction)
 		drawSpectralDifference(*dptr);
-	else
-		drawDoubleMatrix(*dptr);
+	else{
+		//drawDoubleMatrix(*dptr);
+		drawScrollingChromagram(*dptr);
+	}
 	
-	ofSetColor(0xFF6666);
+	ofSetHexColor(0xFF6666);
 	drawEnergyVector(*eptr);
 	
 	ofDrawBitmapString(textString,80,480);
 	
 	
-	ofSetColor(0xFFFFFF);
+	ofSetHexColor(0xFFFFFF);
 	ofLine(audioPosition*width, 0, audioPosition*width, height);
 	
 	
@@ -635,7 +641,7 @@ void OnlineWarpHolder::drawChromoGram(){
 	
 	ofDrawBitmapString(soundFileName,80,480);
 	
-	ofDrawBitmapString(whichFileString,80,80);
+	ofDrawBitmapString(whichFileString,20,80);
 	
 }
 
@@ -648,33 +654,10 @@ void OnlineWarpHolder::drawDoubleMatrix(const DoubleMatrix& dMatrix){
 		
 		float screenHeight = ofGetHeight() ;
 		float screenWidth = ofGetWidth();
-		/*	float heightFactor = 8;
-		 int i, j, startingFrame;
-		 startingFrame = currentPlayingFrame / scrollWidth;//i.e. number of scroll widths in
-		 startingFrame *= scrollWidth;//starting frame in terms of energy frames
-		 startingFrame /= conversionFactor;//CHROMA_CONVERSION_FACTOR; //in terms of chroma frames
-		 
-		 
-		 float chromoLength = scrollWidth/conversionFactor;// CHROMA_CONVERSION_FACTOR;
-		 for (i = 0; i < chromoLength; i++){
-		 j = min(i + startingFrame, (int) dMatrix->size()-1 ) ;
-		 for (int y = 0;y < 12;y++){
-		 ofSetColor(0,0,255 * dMatrix[j][11-y]);//, 0;
-		 ofRect(i*screenWidth/chromoLength,y*screenHeight/12,screenWidth/chromoLength,screenHeight/12);
-		 }//end y
-		 }//end i
-		 
-		 */
-		
-//		float ratio = max(matrixWidth/screenWidth,matrixHeight/screenHeight);
-		
-		//float widthRatio = matrixWidth/screenWidth;
-		//float heightRatio = matrixHeight/screenHeight;
+
 		float heightFactor = screenHeight/matrixHeight;
 		float widthFactor = screenWidth/matrixWidth;
-		//j = min(i + startingFrame, (int) dMatrix->size()-1 ) ;
-	//	for (int xIndex = 0; x < screenWidth; x+= 5)
-		
+
 		for (int xIndex = 0;xIndex < matrixWidth;xIndex++){
 			
 			for (int yIndex = 0;yIndex < matrixHeight;yIndex++){
@@ -698,13 +681,39 @@ void OnlineWarpHolder::drawDoubleMatrix(const DoubleMatrix& dMatrix){
 			
 		}//end i
 		
-		informationString = "Double matrix width "+ofToString(matrixWidth)+"  heioght "+ofToString(matrixHeight);
+	informationString = "Double matrix width "+ofToString(matrixWidth)+"  heioght "+ofToString(matrixHeight);
+		informationString += "\nmax energy "+ofToString(energyMaximumValue);
 	}///end if matrix has content
 	else{
 		printf("Error - please load audio first");
 	}
 	
 	
+}
+
+
+void OnlineWarpHolder::drawScrollingChromagram(const DoubleMatrix& dMatrix){
+	//starts at startingXframe in energy
+	int chromaStartXframe = startingXframe / conversionFactor;
+	//ends at scrollwidth
+	float chromaScrollWidth = scrollWidth / conversionFactor;
+	int chromaIndex;
+	
+	float widthFactor = ofGetWidth()/chromaScrollWidth;
+	
+	
+	for (int i = 0;i < (int)chromaScrollWidth;i++){
+		chromaIndex = chromaStartXframe + i;
+		if (chromaIndex < dMatrix.size()){
+			//then we can draw
+			float heightFactor = ofGetHeight() / dMatrix[chromaIndex].size();
+			for (int j = 0;j < dMatrix[j].size();j++){
+				ofSetColor(0,0,255*dMatrix[chromaIndex][j]);
+				ofRect(i * widthFactor, heightFactor*j, widthFactor, heightFactor);
+			}
+		
+		}
+	} 
 }
 
 
@@ -724,7 +733,7 @@ void OnlineWarpHolder::drawChromaSimilarityMatrix(){
 	//frames needed in energy still
 	//in chromagram frames
 
-	//updateStartingFrame();
+	//updateStartingFrame(); - done in update routine
 	
 	informationString = "start X "+ofToString(startingXframe)+", Y "+ofToString(startingYframe);
 	
@@ -833,7 +842,7 @@ void OnlineWarpHolder::drawChromaSimilarityMatrix(){
 	textString += ofToString(numberOfScrollWidthsForFirstFile);
 	//END SET TEXT
 	
-	ofSetColor(0x0000FF);// && tw.backwardsAlignmentPath.size() > 0  
+	ofSetHexColor(0x0000FF);// && tw.backwardsAlignmentPath.size() > 0  
 	if (firstAudioFilePlaying){// && tw.alignmentMeasureMatrix.size() > 0 
 		ofLine(audioPosition*screenWidth, 0, audioPosition*screenWidth, height);
 		checkIfAudioPositionExceedsWidthForFirstFile();	
@@ -1155,13 +1164,9 @@ void OnlineWarpHolder::loadLibSndFile(const char *infilename){
 
 void OnlineWarpHolder::processAudioToDoubleMatrix(DoubleMatrix* myDoubleMatrix, DoubleVector* energyVector){
 	//wendy
-	myDoubleMatrix->clear();
-	energyVector->clear();
 	
-	chromaG.initialise(FRAMESIZE, CHROMAGRAM_FRAMESIZE);//framesize 512 and hopsize 2048 - already done
-	chromaG.maximumChromaValue = 1;
-	double maximumEnergyValue = 1;
-	
+	resetMatrix(myDoubleMatrix, energyVector);
+		
 	int readcount = 1; // counts number of samples read from sound file
 	printf("processing audio from doublematrix \n");
 	printf("readcount %i", readcount);
@@ -1200,37 +1205,48 @@ void OnlineWarpHolder::processAudioToDoubleMatrix(DoubleMatrix* myDoubleMatrix, 
 		//	double energyValue = getEnergyOfFrame();
 		double energyValue = onset->getDFsample(doubleFrame);
 		energyVector->push_back(energyValue);
-		if (energyValue > maximumEnergyValue)
-			maximumEnergyValue = energyValue;
+		
+		if (energyValue > energyMaximumValue)
+			energyMaximumValue = energyValue;
 		
 		
 	}//end while readcount
 	
-	printf("Max chroma value is %f \n", chromaG.maximumChromaValue);
-	printf("length of chromagram is %d frames\n", (int)myDoubleMatrix->size());
-	printf("height of dmatrix is %d\n", (int)(*myDoubleMatrix)[0].size());
-	//normalise chroma matrix	
-	for (int i = 0; i < myDoubleMatrix->size();i++){
-		for (int j = 0; j < ((*myDoubleMatrix)[0]).size();j++){
-			//non-causal normalisation
-			(*myDoubleMatrix)[i][j] /= chromaG.maximumChromaValue;	
-		}
-	}
-	
-	
-	printf("size of energy vector is %d and maximum energy value is %f\n", (int)energyVector->size(), maximumEnergyValue);	
-	//non causal normalisation
-	for (int i = 0; i < energyVector->size();i++){
-		(*energyVector)[i] /= maximumEnergyValue;
-	}
+	normaliseChromaMatrix(*myDoubleMatrix);
+	normaliseEnergyVector(*energyVector);
 	
 	//	totalNumberOfFrames = (int)energyVector->size();
-	chromaConversionRatio = myDoubleMatrix->size() / (int)energyVector->size();
+	//chromaConversionRatio = myDoubleMatrix->size() / (int)energyVector->size();
 	
 	//	int size = myDoubleMatrix->size() * CHROMA_CONVERSION_FACTOR;
 	
+	printf("1st file: maximum chroma value %f and energy %f\n", chromaG.maximumChromaValue, energyMaximumValue);
+	
 }
 
+
+void OnlineWarpHolder::normaliseChromaMatrix(DoubleMatrix& myDoubleMatrix){
+	printf("NORMALISING Max chroma value is %f \n", chromaG.maximumChromaValue);
+	printf("length of chromagram is %d frames\n", (int)myDoubleMatrix.size());
+	if (myDoubleMatrix.size() > 0)
+	printf("height of dmatrix is %d\n", (int)myDoubleMatrix[0].size());
+	//normalise chroma matrix	
+	for (int i = 0; i < myDoubleMatrix.size();i++){
+		for (int j = 0; j < (myDoubleMatrix[0]).size();j++){
+			//non-causal normalisation
+			myDoubleMatrix[i][j] /= chromaG.maximumChromaValue;	
+		}
+	}
+}
+
+void OnlineWarpHolder::normaliseEnergyVector(DoubleVector& energyVector){
+	
+	printf("size of energy vector is %d and maximum energy value is %f\n", (int)energyVector.size(), energyMaximumValue);	
+	//non causal normalisation
+	for (int i = 0; i < energyVector.size();i++){
+		energyVector[i] /= energyMaximumValue;
+	}
+}
 
 void OnlineWarpHolder::processAudioToMatrixWithCausalAlignment(DoubleMatrix* myDoubleMatrix, DoubleVector* energyVector){
 	resetMatrix(myDoubleMatrix, energyVector);
@@ -1240,13 +1256,13 @@ void OnlineWarpHolder::processAudioToMatrixWithCausalAlignment(DoubleMatrix* myD
 
 void OnlineWarpHolder::resetMatrix(DoubleMatrix* myDoubleMatrix, DoubleVector* energyVector){
 
-	printf("Resetting a matrix\n");
+	printf("Resetting a matrix, chroma max is %f\n", chromaG.maximumChromaValue);
 	myDoubleMatrix->clear();
 	energyVector->clear();
 	
 	chromaG.initialise(FRAMESIZE, CHROMAGRAM_FRAMESIZE);//framesize 512 and hopsize 2048 - already done
-	chromaG.maximumChromaValue = 1;
-	energyMaximumValue = 1;
+	chromaG.maximumChromaValue = 1.0;
+	energyMaximumValue = 5;
 
 }
 
@@ -1274,11 +1290,14 @@ void OnlineWarpHolder::iterateThroughAudioMatrix(DoubleMatrix* myDoubleMatrix, D
 	
 	}
 	
+	//printChromagramMatrix(tw.secondMatrix.size(), tw.secondMatrix);
 	printMatrixData(myDoubleMatrix, energyVector);
 	
 	//	totalNumberOfFrames = (int)energyVector->size();
-	chromaConversionRatio = myDoubleMatrix->size() / (int)energyVector->size();
+	//chromaConversionRatio = myDoubleMatrix->size() / (int)energyVector->size();
 	
+	printf("2nd file: maximum chroma value %f and energy %f\n", chromaG.maximumChromaValue, energyMaximumValue);
+	printChromagramMatrix(tw.secondMatrix.size(), tw.secondMatrix);
 }
 
 void OnlineWarpHolder::doSequentialAnalysis(float* frame, DoubleMatrix* myDoubleMatrix, DoubleVector* energyVector){
@@ -1289,6 +1308,7 @@ void OnlineWarpHolder::doSequentialAnalysis(float* frame, DoubleMatrix* myDouble
 		//	printf("updating sequential %i\n", (int)tw.backwardsAlignmentPath[0].size());
 		}
 	}
+	
 }
 
 bool OnlineWarpHolder::checkAlignmentWindow(){
@@ -1306,23 +1326,17 @@ void OnlineWarpHolder::updateCausalAlignment(){
 	anchorStartFrameX = tw.forwardsAlignmentPath[0][(tw.forwardsAlignmentPath[0].size()-1)];
 	anchorStartFrameY = tw.forwardsAlignmentPath[1][(tw.forwardsAlignmentPath[0].size()-1)];
 	//printf("SEQUENTIAL ALIGNMENT ANCHORS %i,%i\n", anchorStartFrameX, anchorStartFrameY);
-	informationString = "Doing sequnetial alignment, anchors "+ofToString(anchorStartFrameX)+" , "+ofToString(anchorStartFrameY);
+	informationString = "Doing sequential alignment, anchors "+ofToString(anchorStartFrameX)+" , "+ofToString(anchorStartFrameY);
 	//anchorStartFrameY += alignmentHopsize;
 	tw.addAnchorPoints(anchorStartFrameX, anchorStartFrameY);
 	tw.copyForwardsPathToBackwardsPath();
 }
 
 void OnlineWarpHolder::extendChromaSimilarityMatrix(DoubleMatrix* myDoubleMatrix, DoubleVector* energyVector){
-	//printf("Extend: sending to causal part\n");
-	//printChromagramMatrix(20, (*myDoubleMatrix));
-	
-	tw.calculateCausalChromaSimilarityMatrix(tw.chromaMatrix, tw.secondMatrix, tw.chromaSimilarityMatrix);//whichever order as one is extended
-	
-//	if (tw.chromaMatrix.size() < 20){
-//		printChromaSimilarityMatrix(20);
-//	}else{
-//		//printf("chr sim size %i\n", (int)tw.chromaSimilarityMatrix.size());
-//	}
+
+//	tw.calculateCausalChromaSimilarityMatrix(tw.chromaMatrix, tw.secondMatrix, tw.chromaSimilarityMatrix);//whichever order as one is extended
+	tw.calculateRestrictedCausalChromaSimilarityMatrix(tw.chromaMatrix, tw.secondMatrix, tw.chromaSimilarityMatrix, anchorStartFrameX/conversionFactor, anchorStartFrameY/conversionFactor, (anchorStartFrameX+ sequentialBlockRatio*alignmentFramesize)/conversionFactor, (anchorStartFrameY+alignmentFramesize)/conversionFactor) ;//whichever order as one is extended
+
 }
 
 bool OnlineWarpHolder::processFrameToMatrix(float newframe[], DoubleMatrix* myDoubleMatrix, DoubleVector* energyVector){
@@ -1342,8 +1356,8 @@ bool OnlineWarpHolder::processFrameToMatrix(float newframe[], DoubleMatrix* myDo
 		DoubleVector d;
 		
 		for (int i = 0;i<12;i++){
-			d.push_back(chromaG.rawChroma[i]);// / chromaG->maximumChromaValue);
-			
+			d.push_back(chromaG.rawChroma[i] / chromaG.maximumChromaValue);//causal normalisation of chroma
+		//	printf("ITERATION raw value %f and max %f and push back %f\n", chromaG.rawChroma[i], chromaG.maximumChromaValue, d[d.size()-1]);
 		}	
 		//could do chord detection here too 	
 		
@@ -1357,9 +1371,14 @@ bool OnlineWarpHolder::processFrameToMatrix(float newframe[], DoubleMatrix* myDo
 	
 	//	double energyValue = getEnergyOfFrame();
 	double energyValue = onset->getDFsample(doubleFrame);
-	energyVector->push_back(energyValue);
 	if (energyValue > energyMaximumValue)
 		energyMaximumValue = energyValue;
+	
+	energyVector->push_back(energyValue/energyMaximumValue);//causal normalisation of energy
+	
+	//note energy vector is NOT normalised
+	
+
 	
 	return chromaReady;
 	
@@ -1370,21 +1389,8 @@ void OnlineWarpHolder::printMatrixData(DoubleMatrix* myDoubleMatrix, DoubleVecto
 	printf("Max chroma value is %f \n", chromaG.maximumChromaValue);
 	printf("length of chromagram is %d frames\n", (int)myDoubleMatrix->size());
 	printf("height of dmatrix is %d\n", (int)(*myDoubleMatrix)[0].size());
-	//normalise chroma matrix	
-	for (int i = 0; i < myDoubleMatrix->size();i++){
-		for (int j = 0; j < ((*myDoubleMatrix)[0]).size();j++){
-			//non-causal normalisation
-			(*myDoubleMatrix)[i][j] /= chromaG.maximumChromaValue;	
-		}
-	}
-	
-	
 	printf("size of energy vector is %d \n", (int)energyVector->size());	
-	//non causal normalisation
-	for (int i = 0; i < energyVector->size();i++){
-		(*energyVector)[i] /= energyMaximumValue;
-	}
-	
+
 }
 
 //--------------------------------------------------------------
@@ -1506,7 +1512,7 @@ void OnlineWarpHolder::keyPressed  (int key){
 	}
 	
 	
-	if (key == 's'){
+	if (key == 'h'){
 		drawSimilarity = !drawSimilarity;
 	}
 	
@@ -1518,6 +1524,11 @@ void OnlineWarpHolder::keyPressed  (int key){
 	if (key == 's'){
 		drawSpectralDifferenceFunction = !drawSpectralDifferenceFunction;
 	}
+	
+	if (key == 'k'){
+		printChromagramMatrix(tw.secondMatrix.size(), tw.secondMatrix);
+	}
+	
 	
 }
 
@@ -1657,10 +1668,6 @@ void OnlineWarpHolder::loadFirstAudio(string soundFileName){
 	tw.initialiseVariables();
 	tw.clearVectors();
 	
-	resetMatrix(&tw.chromaMatrix, &tw.firstEnergyVector);//not strictly needed as in next fn
-
-//	resetForwardsPath();//sets anchor points and wipes previous forwards path
-	
 	processAudioToDoubleMatrix(&tw.chromaMatrix, &tw.firstEnergyVector);//non causal way for first audio (ref) file
 	
 	soundFileLoader->loadLibSndFile(infilename);//LOADS IT INTO SOUNDFILE.AUDIOHOLDER.AUDIOVECTOR
@@ -1683,14 +1690,13 @@ void OnlineWarpHolder::loadSecondAudio(string sndFileName){
 	informationString = "Loading second file.."+ soundFileName;
 	
 	resetSequentialAnalysis();
-	resetMatrix(&tw.secondMatrix, &tw.secondEnergyVector);
-	
-//	resetForwardsPath();//sets anchor points and wipes previous forwards path
 	
 	//the 'live' file to be analysed
 	processAudioToMatrixWithCausalAlignment(&tw.secondMatrix, &tw.secondEnergyVector);
 		
-//	printChromagramMatrix(20, tw.secondMatrix);
+	
+	
+	printChromagramMatrix(20, tw.secondMatrix);
 	
 	//	processAudioToDoubleMatrix(&tw.secondMatrix, &tw.secondEnergyVector); - I guess non causal way
 	//	calculateSimilarityAndAlignment(); - now done in process to matrix
@@ -1791,6 +1797,7 @@ void OnlineWarpHolder::printChromagramMatrix(int sizeToPrint, DoubleMatrix& matr
 	printf("\n _ _ _ _\n");
 	printf("ChromaGram Matrix \n");
 	int i,j;
+	double tmpMax = 0;
 	DoubleVector d;
 	int rowSize = min(sizeToPrint, (int) matrix.size());
 	
@@ -1799,10 +1806,13 @@ void OnlineWarpHolder::printChromagramMatrix(int sizeToPrint, DoubleMatrix& matr
 		
 		for (i = 0;i < 12;i++){			
 			printf("%f , ", matrix[j][i] );
+			if (matrix[j][i] > tmpMax)
+				tmpMax = matrix[j][i];
 		}
 		printf("\n");
 	}
 	printf("...............\n");
+	printf("Max is %f\n", tmpMax);
 	
 }
 

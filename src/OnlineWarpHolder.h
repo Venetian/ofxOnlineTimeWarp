@@ -25,7 +25,7 @@
 #define FRAMESIZE 512
 #define ENERGY_LENGTH 80000
 #define CHROMA_LENGTH 12000
-#define CHROMA_CONVERSION_FACTOR 16 //16 times as many frames in energy as in chroma
+//#define CHROMA_CONVERSION_FACTOR 16 //16 times as many frames in energy as in chroma
 #define CHROMAGRAM_FRAMESIZE 2048
 #define FILE_LIMIT 600000
 #define NUMBER_OF_SCREENS 3
@@ -106,7 +106,7 @@ public:
 	void printForwardsPath();
 	void printAlignmentMatrix(const DoubleMatrix& alignmentMatrix, int sizeToPrint);
 	void drawChromaSimilarityMatrix();
-	
+	void drawScrollingChromagram(const DoubleMatrix& dMatrix);
 	//	DoubleMatrix alignmentMeasureMatrix;
 	
 	//	DoubleVector minimumAlignmentPath;
@@ -155,6 +155,10 @@ public:
 //	void newAnchorPointReached();
 	
 	void processAudioToDoubleMatrix(DoubleMatrix* myDoubleMatrix, DoubleVector* energyVector);
+	void normaliseEnergyVector(DoubleVector& energyVector);
+	void normaliseChromaMatrix(DoubleMatrix& myDoubleMatrix);
+	
+	
 	void processAudioToMatrixWithCausalAlignment(DoubleMatrix* myDoubleMatrix, DoubleVector* energyVector);
 	//online version
 	bool processFrameToMatrix(float newframe[], DoubleMatrix* myDoubleMatrix, DoubleVector* energyVector);
@@ -238,7 +242,7 @@ public:
 	SNDFILE *infile; // define input and output sound files
 	SF_INFO sfinfo ; // struct to hold info about sound file
 	
-	float chromaConversionRatio;//not needed but could be useful
+	//float chromaConversionRatio;//not needed but could be useful
 	TimeWarp tw;
 	Chromagram chromaG;
 	OnsetDetectionFunction* onset;

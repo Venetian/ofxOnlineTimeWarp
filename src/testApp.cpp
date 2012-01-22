@@ -61,7 +61,7 @@ void testApp::setup(){
 	
 	
 	bufferCounter = 0;
-	ofSetFrameRate(20);
+	ofSetFrameRate(10);
 	
 	//loading audio file for click sound
 	const char	*clickfilename = "cow2.wav";
@@ -118,7 +118,7 @@ void testApp::draw(){
 //--------------------------------------------------------------
 void testApp::drawAudioScreen(){
 	
-	ofSetColor(0);
+	ofSetColor(0,0,0);
 	
 	verdana14.drawString("input: "+inputSoundStream.deviceName, 20, 20);
 	verdana14.drawString("output: "+outputSoundStream.deviceName, 20, 60);
@@ -134,7 +134,7 @@ void testApp::drawAudioScreen(){
 
 void testApp::drawAudioInput(){
 	
-	ofSetColor(125);
+	ofSetColor(125,125,125);
 	
 	ofDrawBitmapString(infoString, 31, 92);
 	
@@ -167,7 +167,7 @@ void testApp::drawAudioInput(){
 	ofPushMatrix();
 	ofTranslate(32, 370, 0);
 	
-	ofSetColor(125);
+	ofSetColor(125,125,125);
 	ofDrawBitmapString("Output Stream", 4, 18);
 	
 	ofSetLineWidth(1);	
@@ -190,7 +190,7 @@ void testApp::drawAudioInput(){
 	ofPushMatrix();
 	ofTranslate(565, 170, 0);
 	
-	ofSetColor(125);
+	ofSetColor(125,125,125);
 	ofDrawBitmapString("Scaled average vol (0-100): " + ofToString(scaledVol * 100.0, 0), 4, 18);
 	ofRect(0, 0, 400, 400);
 	
@@ -214,7 +214,7 @@ void testApp::drawAudioInput(){
 	
 	drawCounter++;
 	
-	ofSetColor(125);
+	ofSetColor(125,125,125);
 	string reportString = "buffers received: "+ofToString(bufferCounter)+"\ndraw routines called: "+ofToString(drawCounter)+"\n";//ticks: " + ofToString(inputSoundStream.getTickCount());
 	ofDrawBitmapString(reportString, 32, 589);
 }
@@ -301,7 +301,9 @@ void testApp::keyReleased  (int key){
 
 
 //--------------------------------------------------------------
-void testApp::audioInputListener(ofxAudioEventArgs &args){	
+void testApp::audioInputListener(ofxAudioEventArgs &args){
+	//printf("listener\n");
+	
 	// samples are "interleaved"
 	float curVol = 0.0;
 	// samples are "interleaved"
@@ -336,11 +338,16 @@ void testApp::audioInputListener(ofxAudioEventArgs &args){
 
 void testApp::audioOutputListener(ofxAudioEventArgs &args){	
 	
+	//	printf("ouput listener\n");
+	
 	if(setupFinished && args.deviceID == outputDeviceID){
 		for (int i = 0; i < args.bufferSize; i++){
 			if (outputIsSameAsInput){
 				args.buffer[i*2] = leftAudioIn[i];
 				args.buffer[i*2 + 1] = rightAudioIn[i];
+			//	if (leftAudioIn[i] >= 1){
+			//		printf("overloading");
+			//	}
 			}
 			else{
 				//any old sine wave
@@ -425,7 +432,6 @@ void testApp::checkPressOnDeviceList(int x, int y){
 			showingOutputDevices = false;
 		}
 		
-		
 	}
 	
 }
@@ -486,7 +492,7 @@ void testApp::showDeviceListWindow(ofxPortaudioSoundStream& paSoundStream){
 		if (abs(mouseY - (deviceListHeightOffset + deviceListHeightDistance*(i+1))) < 16  && mouseX > screenWidth - 300)
 			ofSetColor(255,0,0);
 		else
-			ofSetColor(0);
+			ofSetColor(0,0,0);
 		if (showingInputDevices && paSoundStream.deviceList[i].maxNumberOfInputs > 0 )
 			verdana14.drawString(paSoundStream.deviceList[i].name, screenWidth - 300 , deviceListHeightOffset + deviceListHeightDistance*(i+1));
 		
