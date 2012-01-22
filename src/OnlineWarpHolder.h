@@ -263,6 +263,10 @@ public:
 	int screenToDraw;
 	ofxSoundFileLoader* soundFileLoader;
 	std::string informationString;
+	
+	bool restrictedChromaCalculation;
+	
+	int firstVectorSize, secondVectorSize;
 };
 
 #endif

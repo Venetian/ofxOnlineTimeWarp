@@ -57,7 +57,9 @@ OnlineWarpHolder::OnlineWarpHolder(){
 
 void OnlineWarpHolder::setup(){
 	sequentialAlignment = true;
-	sequentialBlockRatio = 2;
+	sequentialBlockRatio = 3;
+	
+	restrictedChromaCalculation = true;
 	
 	soundFileLoader = new  ofxSoundFileLoader();
 	
@@ -105,7 +107,7 @@ void OnlineWarpHolder::setup(){
 	sfinfo.format = 0;
 	
 	moveOn = true;
-	informationString = "";
+//	informationString = "";
 	
 	
 	chromaG.initialise(FRAMESIZE, CHROMAGRAM_FRAMESIZE);
@@ -422,31 +424,34 @@ void OnlineWarpHolder::computeAlignmentForFirstBlock(const int& startFrameX){
 
 //--------------------------------------------------------------
 void OnlineWarpHolder::update(){
-	textString = "energy index [";
-	textString += ofToString(xIndex);
-	textString += "] = ";
-	textString += ofToString(energy[xIndex]);
+
 	
 	//	chordString = "Chord : ";
 	//	chordString += ofToString(rootChord[currentPlayingFrame/conversionFactor]);//CHROMA_CONVERSION_FACTOR]);
 	
-	audioPosition = (*playingAudio).getPosition();
-	if (firstAudioFilePlaying){
-		audioPosition *= tw.firstEnergyVector.size();
-		updateAlignmentPathIndex(0);
-	}
-	else {
-		audioPosition *= tw.secondEnergyVector.size();	
-		updateAlignmentPathIndex(1);
-	}
+
 	
-	//if(!audioPaused)
+	//if(!audioPause]d)
 	//printScoreForRow(audioPosition/CHROMA_CONVERSION_FACTOR, (audioPosition/CHROMA_CONVERSION_FACTOR)+10);
 	
 	if (!*realTimeAnalysisMode){
-	currentPlayingFrame = audioPosition;
-	audioPosition = (int) audioPosition % scrollWidth ;
-	audioPosition /= scrollWidth;
+		
+		audioPosition = (*playingAudio).getPosition();
+		if (firstAudioFilePlaying){
+			audioPosition *= tw.firstEnergyVector.size();
+			updateAlignmentPathIndex(0);
+		}
+		else {
+			audioPosition *= tw.secondEnergyVector.size();	
+			updateAlignmentPathIndex(1);
+		}
+		
+		currentPlayingFrame = audioPosition;
+		audioPosition = (int) audioPosition % scrollWidth ;
+		audioPosition /= scrollWidth;
+	
+	//	ofSoundUpdate();
+		
 	}else{
 		//audioPosition = anchorStartFrameX;
 		currentPlayingFrame = anchorStartFrameX;
@@ -454,7 +459,7 @@ void OnlineWarpHolder::update(){
 	
 	updateStartingFrame();
 	
-	ofSoundUpdate();
+	
 	
 	
 }
@@ -527,8 +532,8 @@ void OnlineWarpHolder::draw(){
 			
 			
 	}
-	ofSetHexColor(0xFFFFFF);
-	ofDrawBitmapString(informationString, 20, 20);	
+//	ofSetHexColor(0xFFFFFF);
+//	ofDrawBitmapString(informationString, 20, 20);	
 	/*
 	if (drawSimilarity){
 		//drawSimilarityMatrix();
@@ -608,7 +613,6 @@ void OnlineWarpHolder::drawChromoGram(){
 		
 		dptr = &tw.secondMatrix;
 		eptr = &tw.secondEnergyVector;
-		
 		whichFileString = "second file";
 		
 	}else {
@@ -681,8 +685,8 @@ void OnlineWarpHolder::drawDoubleMatrix(const DoubleMatrix& dMatrix){
 			
 		}//end i
 		
-	informationString = "Double matrix width "+ofToString(matrixWidth)+"  heioght "+ofToString(matrixHeight);
-		informationString += "\nmax energy "+ofToString(energyMaximumValue);
+//	informationString = "Double matrix width "+ofToString(matrixWidth)+"  heioght "+ofToString(matrixHeight);
+//		informationString += "\nmax energy "+ofToString(energyMaximumValue);
 	}///end if matrix has content
 	else{
 		printf("Error - please load audio first");
@@ -735,7 +739,7 @@ void OnlineWarpHolder::drawChromaSimilarityMatrix(){
 
 	//updateStartingFrame(); - done in update routine
 	
-	informationString = "start X "+ofToString(startingXframe)+", Y "+ofToString(startingYframe);
+//	informationString = "start X "+ofToString(startingXframe)+", Y "+ofToString(startingYframe);
 	
 	int *indexOfAlignmentPathTested;
 	int lengthOfPath = 0;
@@ -797,15 +801,9 @@ void OnlineWarpHolder::drawChromaSimilarityMatrix(){
 	
 	//SET TEXT
 	ofSetColor(255 ,255,255);
-	string textString;
-	/*	textString = "width : ";
-	 textString += ofToString(simWidth);
-	 
-	 textString += "  height : ";
-	 textString += ofToString(simHeight);
-	 */	
-	//	textString += "  startframe : ";
-	//	textString += ofToString(startingFrame);
+
+/*	string textString;
+
 	
 	textString += "  Xframe : ";
 	textString += ofToString(startingXframe);
@@ -841,6 +839,7 @@ void OnlineWarpHolder::drawChromaSimilarityMatrix(){
 	textString += "  no.Scrolls: ";
 	textString += ofToString(numberOfScrollWidthsForFirstFile);
 	//END SET TEXT
+ */
 	
 	ofSetHexColor(0x0000FF);// && tw.backwardsAlignmentPath.size() > 0  
 	if (firstAudioFilePlaying){// && tw.alignmentMeasureMatrix.size() > 0 
@@ -852,9 +851,9 @@ void OnlineWarpHolder::drawChromaSimilarityMatrix(){
 		ofLine(0, audioPosition*screenHeight, screenWidth, audioPosition*screenHeight);	
 	}
 	
-	ofDrawBitmapString(textString,80,580);
+//	ofDrawBitmapString(textString,80,580);
 	
-	ofDrawBitmapString(userInfoString,80,80);
+//	ofDrawBitmapString(userInfoString,80,80);
 	
 }
 
@@ -1326,17 +1325,18 @@ void OnlineWarpHolder::updateCausalAlignment(){
 	anchorStartFrameX = tw.forwardsAlignmentPath[0][(tw.forwardsAlignmentPath[0].size()-1)];
 	anchorStartFrameY = tw.forwardsAlignmentPath[1][(tw.forwardsAlignmentPath[0].size()-1)];
 	//printf("SEQUENTIAL ALIGNMENT ANCHORS %i,%i\n", anchorStartFrameX, anchorStartFrameY);
-	informationString = "Doing sequential alignment, anchors "+ofToString(anchorStartFrameX)+" , "+ofToString(anchorStartFrameY);
+//	informationString = "Doing sequential alignment, anchors "+ofToString(anchorStartFrameX)+" , "+ofToString(anchorStartFrameY);
 	//anchorStartFrameY += alignmentHopsize;
 	tw.addAnchorPoints(anchorStartFrameX, anchorStartFrameY);
 	tw.copyForwardsPathToBackwardsPath();
 }
 
 void OnlineWarpHolder::extendChromaSimilarityMatrix(DoubleMatrix* myDoubleMatrix, DoubleVector* energyVector){
-
-//	tw.calculateCausalChromaSimilarityMatrix(tw.chromaMatrix, tw.secondMatrix, tw.chromaSimilarityMatrix);//whichever order as one is extended
+	if (restrictedChromaCalculation)
 	tw.calculateRestrictedCausalChromaSimilarityMatrix(tw.chromaMatrix, tw.secondMatrix, tw.chromaSimilarityMatrix, anchorStartFrameX/conversionFactor, anchorStartFrameY/conversionFactor, (anchorStartFrameX+ sequentialBlockRatio*alignmentFramesize)/conversionFactor, (anchorStartFrameY+alignmentFramesize)/conversionFactor) ;//whichever order as one is extended
-
+	else
+	tw.calculateCausalChromaSimilarityMatrix(tw.chromaMatrix, tw.secondMatrix, tw.chromaSimilarityMatrix);//whichever order as one is extended
+	
 }
 
 bool OnlineWarpHolder::processFrameToMatrix(float newframe[], DoubleMatrix* myDoubleMatrix, DoubleVector* energyVector){
@@ -1663,7 +1663,7 @@ void OnlineWarpHolder::loadFirstAudio(string soundFileName){
 	
 	printf("Load FIRST file %s\n", soundFileName.c_str());
 
-	informationString = "Loading first file.."+ soundFileName;
+//	informationString = "Loading first file.."+ soundFileName;
 	
 	tw.initialiseVariables();
 	tw.clearVectors();
@@ -1687,7 +1687,7 @@ void OnlineWarpHolder::loadSecondAudio(string sndFileName){
 	const char	*infilenme = sndFileName.c_str() ;	
 	loadLibSndFile(infilenme);
 	printf("Load SECOND file\n");
-	informationString = "Loading second file.."+ soundFileName;
+//	informationString = "Loading second file.."+ soundFileName;
 	
 	resetSequentialAnalysis();
 	
